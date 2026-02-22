@@ -24,8 +24,9 @@
   var PLUGIN_CSS = [
     '.pdf-preview-inline{border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-l,4px);overflow:hidden;margin:1em 0;font-family:inherit}',
     '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0}',
-    '.pdf-preview-filename{font-weight:600;font-size:.88em;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pdf-preview-filename{font-weight:600;font-size:.88em;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
     '.pdf-preview-filename:hover,.pdf-preview-filename:focus{text-decoration:underline;outline:none}',
+    '.pdf-header-center{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:0}',
     '.pdf-preview-controls{display:flex;gap:4px;flex-shrink:0}',
     '.pdf-inline-expand-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0;flex-shrink:0}',
     '.pdf-inline-expand-btn:hover,.pdf-inline-expand-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
@@ -44,7 +45,7 @@
     '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box}',
     '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color);border-radius:0;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:100%;max-height:100%;width:96vw;height:97vh;box-sizing:border-box}',
     '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--base-background-color);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0;opacity:1}',
-    '.pdf-preview-modal-filename{font-weight:600;font-size:.88em;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pdf-preview-modal-filename{font-weight:600;font-size:.88em;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
     '.pdf-preview-modal-filename:hover,.pdf-preview-modal-filename:focus{text-decoration:underline;outline:none}',
     '.pdf-preview-modal-actions{display:flex;gap:4px;align-items:center;flex-shrink:0}',
     '.pdf-preview-modal-spacer{width:24px;flex-shrink:0}',
@@ -314,7 +315,9 @@
   function buildInlineHeader(safeUrl, safeName) {
     return '<div class="pdf-preview-header">' +
       '<span class="pdf-preview-modal-spacer"></span>' +
-      '<a class="pdf-preview-filename" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + safeName + ' in new tab">' + safeName + '</a>' +
+      '<span class="pdf-header-center">' +
+        '<a class="pdf-preview-filename" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + safeName + ' in new tab">' + safeName + '</a>' +
+      '</span>' +
       '<span class="pdf-preview-controls">' +
         '<button class="pdf-inline-expand-btn" type="button" aria-label="Expand to full screen" aria-haspopup="dialog">&#x2197;</button>' +
       '</span>' +
@@ -389,7 +392,9 @@
       '<div class="pdf-preview-modal" role="document">' +
         '<div class="pdf-preview-modal-header">' +
           '<span class="pdf-preview-modal-spacer"></span>' +
-          '<a class="pdf-preview-modal-filename" id="pdf-preview-modal-title" href="#" target="_blank" rel="noopener noreferrer"></a>' +
+          '<span class="pdf-header-center">' +
+            '<a class="pdf-preview-modal-filename" id="pdf-preview-modal-title" href="#" target="_blank" rel="noopener noreferrer"></a>' +
+          '</span>' +
           '<span class="pdf-preview-modal-actions">' +
             '<button class="pdf-modal-close-btn" id="pdf-modal-close-btn" type="button" aria-label="Close PDF viewer">&#x2715;</button>' +
           '</span>' +
