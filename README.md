@@ -17,19 +17,7 @@ A [Docsify](https://docsify.js.org) plugin that enables inline and modal preview
 
 ## Installation
 
-### 1. Add the stylesheet
-
-```html
-<link rel="stylesheet" href="docsify-pdf-preview.css" />
-```
-
-Or use a CDN:
-
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gllmAR/docsify-pdf-preview/docsify-pdf-preview.css" />
-```
-
-### 2. Add the script (after `docsify.min.js`)
+Add a single `<script>` tag after `docsify.min.js` — styles are injected automatically:
 
 ```html
 <script src="docsify-pdf-preview.js"></script>
