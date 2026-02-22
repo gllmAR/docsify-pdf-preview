@@ -13,8 +13,8 @@
     mode: 'modal',           // "inline" | "modal" | "both"
     backend: 'native',       // "native" | "pdfjs"
     height: '75vh',
-    modalWidth: '90vw',
-    modalHeight: '90vh',
+    modalWidth: '96vw',
+    modalHeight: '97vh',
     downloadButton: true,
     openButton: true,
     routeParam: null,        // e.g. "pdf" – enables URL state
@@ -25,28 +25,32 @@
 
   var PLUGIN_CSS = [
     '.pdf-preview-inline{border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-l,4px);overflow:hidden;margin:1em 0;font-family:inherit}',
-    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:8px;flex-wrap:wrap}',
-    '.pdf-preview-filename{font-weight:600;font-size:.9em;word-break:break-all;flex:1;min-width:0;color:var(--base-color)}',
-    '.pdf-preview-controls{display:flex;gap:6px;flex-shrink:0}',
+    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0}',
+    '.pdf-preview-filename{font-weight:600;font-size:.88em;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pdf-preview-filename:hover,.pdf-preview-filename:focus{text-decoration:underline;outline:none}',
+    '.pdf-preview-controls{display:flex;gap:4px;flex-shrink:0}',
+    '.pdf-inline-expand-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0;flex-shrink:0}',
+    '.pdf-inline-expand-btn:hover,.pdf-inline-expand-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
+    '.pdf-inline-expand-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
     '.pdf-preview-frame-area{position:relative;width:100%;background:var(--base-background-color)}',
     '.pdf-preview-frame{display:block;width:100%;height:100%;border:none}',
-    '.pdf-preview-fallback{display:none;padding:16px;color:var(--base-color);font-size:.9em;background:color-mix(in srgb,var(--theme-color) 8%,var(--base-background-color));border-top:1px solid var(--sidebar-border-color)}',
+    '.pdf-preview-fallback{display:none;padding:12px;color:var(--base-color);font-size:.9em;background:color-mix(in srgb,var(--theme-color) 8%,var(--base-background-color));border-top:1px solid var(--sidebar-border-color)}',
     '.pdf-preview-frame-area>.pdf-preview-frame:not([src])+.pdf-preview-fallback,',
     '.pdf-preview-frame-area>.pdf-preview-frame[src=""]+.pdf-preview-fallback{display:block}',
-    '.pdf-btn{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.82em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;font-family:inherit}',
+    '.pdf-btn{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;font-family:inherit}',
     '.pdf-btn:hover,.pdf-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
     '.pdf-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
-    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;margin:0 4px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.875em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s}',
+    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;margin:0 4px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.85em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s}',
     '.pdf-preview-modal-btn:hover,.pdf-preview-modal-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
     '.pdf-preview-modal-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
-    '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}',
-    '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color);border-radius:var(--border-radius-l,4px);overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);max-width:100%;max-height:100%;width:90vw;height:90vh;box-sizing:border-box}',
-    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:8px;flex-shrink:0}',
-    '.pdf-preview-modal-filename{font-weight:600;font-size:.95em;word-break:break-all;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box}',
+    '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color);border-radius:0;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:100%;max-height:100%;width:96vw;height:97vh;box-sizing:border-box}',
+    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0}',
+    '.pdf-preview-modal-filename{font-weight:600;font-size:.88em;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.pdf-preview-modal-filename:hover,.pdf-preview-modal-filename:focus{text-decoration:underline;outline:none}',
-    '.pdf-preview-modal-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}',
-    '.pdf-preview-modal-spacer{width:28px;flex-shrink:0}',  /* balances the close btn to keep title centered */
-    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:1em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0}',
+    '.pdf-preview-modal-actions{display:flex;gap:4px;align-items:center;flex-shrink:0}',
+    '.pdf-preview-modal-spacer{width:24px;flex-shrink:0}',
+    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0}',
     '.pdf-modal-close-btn:hover,.pdf-modal-close-btn:focus{background:color-mix(in srgb,#d93025 10%,var(--base-background-color));border-color:#d93025;color:#d93025;outline:none}',
     '.pdf-modal-close-btn:focus-visible{outline:2px solid #d93025;outline-offset:2px}',
     '.pdf-preview-modal-body{flex:1;overflow:auto;position:relative;display:flex;flex-direction:column}',
@@ -306,25 +310,25 @@
   // ─── 5. UI Builders ──────────────────────────────────────────────────────────
 
   /**
-   * Build an inline preview container.
-   *
-   * Layout:
-   * +-----------------------------------+
-   * | filename.pdf  [open] [download]  |
-   * +-----------------------------------+
-   * |           iframe area            |
-   * +-----------------------------------+
+   * Build the shared inline header bar.
+   * Same visual structure as the modal header: spacer | filename link | expand btn.
+   */
+  function buildInlineHeader(safeUrl, safeName) {
+    return '<div class="pdf-preview-header">' +
+      '<span class="pdf-preview-modal-spacer"></span>' +
+      '<a class="pdf-preview-filename" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + safeName + ' in new tab">' + safeName + '</a>' +
+      '<span class="pdf-preview-controls">' +
+        '<button class="pdf-inline-expand-btn" type="button" aria-label="Expand to full screen" aria-haspopup="dialog">&#x2197;</button>' +
+      '</span>' +
+    '</div>';
+  }
+
+  /**
+   * Build an inline preview container (native iframe backend).
    */
   function buildInlineContainer(info, cfg) {
     var safeUrl = sanitizeAttr(info.resolvedUrl);
     var safeName = sanitizeAttr(info.filename);
-
-    var openBtn = cfg.openButton
-      ? '<a class="pdf-btn" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + safeName + ' in new tab">Open</a>'
-      : '';
-    var dlBtn = cfg.downloadButton
-      ? '<a class="pdf-btn" href="' + safeUrl + '" download="' + safeName + '" aria-label="Download ' + safeName + '">Download</a>'
-      : '';
 
     var wrapper = document.createElement('div');
     wrapper.className = 'pdf-preview-inline';
@@ -332,10 +336,7 @@
     wrapper.setAttribute('aria-label', 'PDF Preview: ' + info.filename);
 
     wrapper.innerHTML =
-      '<div class="pdf-preview-header">' +
-        '<span class="pdf-preview-filename">' + safeName + '</span>' +
-        '<span class="pdf-preview-controls">' + openBtn + dlBtn + '</span>' +
-      '</div>' +
+      buildInlineHeader(safeUrl, safeName) +
       '<div class="pdf-preview-frame-area" style="height:' + sanitizeAttr(cfg.height) + '">' +
         '<iframe class="pdf-preview-frame"' +
           ' src="' + safeUrl + '"' +
@@ -717,35 +718,35 @@
 
   function renderInline(info, cfg) {
     var el = info.element;
-    var container;
+    var safeUrl = sanitizeAttr(info.resolvedUrl);
+    var safeName = sanitizeAttr(info.filename);
+
+    var container = document.createElement('div');
+    container.className = 'pdf-preview-inline';
+    container.setAttribute('role', 'region');
+    container.setAttribute('aria-label', 'PDF Preview: ' + info.filename);
+    container.innerHTML = buildInlineHeader(safeUrl, safeName);
+
+    var frameArea = document.createElement('div');
+    frameArea.className = 'pdf-preview-frame-area';
+    frameArea.style.height = cfg.height;
+    container.appendChild(frameArea);
+
+    el.parentNode.replaceChild(container, el);
 
     if (cfg.backend === 'pdfjs') {
-      container = document.createElement('div');
-      container.className = 'pdf-preview-inline';
-      container.setAttribute('role', 'region');
-      container.setAttribute('aria-label', 'PDF Preview: ' + info.filename);
-      var safeUrl = sanitizeAttr(info.resolvedUrl);
-      var safeName = sanitizeAttr(info.filename);
-      var openBtn = cfg.openButton
-        ? '<a class="pdf-btn" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" aria-label="Open ' + safeName + ' in new tab">Open</a>'
-        : '';
-      var dlBtn = cfg.downloadButton
-        ? '<a class="pdf-btn" href="' + safeUrl + '" download="' + safeName + '" aria-label="Download ' + safeName + '">Download</a>'
-        : '';
-      container.innerHTML =
-        '<div class="pdf-preview-header">' +
-          '<span class="pdf-preview-filename">' + safeName + '</span>' +
-          '<span class="pdf-preview-controls">' + openBtn + dlBtn + '</span>' +
-        '</div>';
-      var frameArea = document.createElement('div');
-      frameArea.className = 'pdf-preview-frame-area';
-      frameArea.style.height = cfg.height;
-      container.appendChild(frameArea);
-      el.parentNode.replaceChild(container, el);
       renderPdfJs(frameArea, info.resolvedUrl, cfg);
     } else {
-      container = buildInlineContainer(info, cfg);
-      el.parentNode.replaceChild(container, el);
+      renderNativeInContainer(frameArea, info.resolvedUrl, cfg);
+    }
+
+    // Wire expand button → open same PDF in modal
+    var expandBtn = container.querySelector('.pdf-inline-expand-btn');
+    if (expandBtn) {
+      expandBtn.addEventListener('click', function () {
+        _modalFocusTrigger = expandBtn;
+        openModal(info, cfg);
+      });
     }
   }
 
