@@ -42,7 +42,8 @@ Add a `pdfPreview` block to your `window.$docsify` config:
       enabled: true,          // Enable/disable the plugin
       mode: 'modal',          // "inline" | "modal" | "both"
       backend: 'native',      // "native" (iframe) | "pdfjs"
-      height: '75vh',         // Inline preview height
+      mobilePdfjs: true,      // Auto-switch to pdfjs on narrow/touch screens
+      height: 'auto',          // Inline preview height ('auto' = fit one full page, or any CSS length e.g. '75vh')
       modalWidth: '90vw',     // Modal width
       modalHeight: '90vh',    // Modal height
       downloadButton: true,   // Show Download button
@@ -157,7 +158,7 @@ The token is stripped before rendering so it never appears as a browser tooltip.
 |-----|--------|---------|
 | `mode` | `inline` \| `modal` \| `both` | global config |
 | `backend` | `native` \| `pdfjs` | global config |
-| `height` | any CSS length | `75vh` |
+| `height` | any CSS length, `auto` | `auto` |
 | `modalWidth` | any CSS length | `90vw` |
 | `modalHeight` | any CSS length | `90vh` |
 

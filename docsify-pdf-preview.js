@@ -12,7 +12,8 @@
     enabled: true,
     mode: 'inline',          // "inline" | "modal" | "both"
     backend: 'native',       // "native" | "pdfjs"
-    height: '75vh',
+    mobilePdfjs: true,       // force pdfjs backend on narrow/touch screens
+    height: 'auto',          // 'auto' = fit one full page; or any CSS length
     modalWidth: '96vw',
     modalHeight: '97vh',
     routeParam: null,        // e.g. "pdf" – enables URL state
@@ -336,9 +337,14 @@
     wrapper.setAttribute('role', 'region');
     wrapper.setAttribute('aria-label', 'PDF Preview: ' + info.filename);
 
+    // 'auto' → use A4 portrait aspect-ratio so height tracks container width.
+    var frameAreaStyle = cfg.height === 'auto'
+      ? 'aspect-ratio:595/842'
+      : 'height:' + sanitizeAttr(cfg.height);
+
     wrapper.innerHTML =
       buildInlineHeader(safeUrl, safeName) +
-      '<div class="pdf-preview-frame-area" style="height:' + sanitizeAttr(cfg.height) + '">' +
+      '<div class="pdf-preview-frame-area" style="' + frameAreaStyle + '">'; +
         '<iframe class="pdf-preview-frame"' +
           ' src="' + safeUrl + '"' +
           ' title="PDF preview: ' + safeName + '"' +
@@ -639,7 +645,13 @@
 
       function renderPage(num) {
         state.doc.getPage(num).then(function (page) {
-          var viewport = page.getViewport({ scale: state.scale });
+          // Compute a fit-to-width base scale so the page fills the container
+          // on any screen size. state.scale (default 1.0) is then a zoom
+          // multiplier relative to fit-width (1.0 = fit, 1.25 = 25% larger…).
+          var containerWidth = container.clientWidth || window.innerWidth || 800;
+          var baseViewport = page.getViewport({ scale: 1.0 });
+          var fitScale = containerWidth / baseViewport.width;
+          var viewport = page.getViewport({ scale: fitScale * state.scale });
           canvas.height = viewport.height;
           canvas.width = viewport.width;
           canvas.setAttribute('aria-label', 'PDF page ' + num + ' of ' + state.totalPages);
@@ -648,7 +660,27 @@
           pageInfo.textContent = 'Page ' + num + ' / ' + state.totalPages;
           prevBtn.disabled = num <= 1;
           nextBtn.disabled = num >= state.totalPages;
+          // Auto-height: set container to exactly one rendered page.
+          if (cfg.height === 'auto') {
+            var controlsH = controls.offsetHeight || 0;
+            container.style.height = (viewport.height + controlsH) + 'px';
+          }
         });
+      }
+
+      // Re-render when the container width changes (orientation, sidebar toggle).
+      var _prevContainerWidth = 0;
+      if (typeof ResizeObserver !== 'undefined') {
+        var _ro = new ResizeObserver(function (entries) {
+          // Guard: doc not yet loaded (PDF.js still fetching).
+          if (!state.doc) return;
+          var w = Math.round(entries[0].contentRect.width);
+          if (w > 0 && w !== _prevContainerWidth) {
+            _prevContainerWidth = w;
+            renderPage(state.page);
+          }
+        });
+        _ro.observe(container);
       }
 
       prevBtn.addEventListener('click', function () {
@@ -732,7 +764,15 @@
 
     var frameArea = document.createElement('div');
     frameArea.className = 'pdf-preview-frame-area';
-    frameArea.style.height = cfg.height;
+    if (cfg.height === 'auto') {
+      if (cfg.backend !== 'pdfjs') {
+        // Native: A4 portrait aspect-ratio — height auto-adapts to container width.
+        frameArea.style.aspectRatio = '595 / 842';
+      }
+      // pdfjs: height is set to exact page px after first render (see renderPdfJs).
+    } else {
+      frameArea.style.height = cfg.height;
+    }
     container.appendChild(frameArea);
 
     el.parentNode.replaceChild(container, el);
@@ -788,10 +828,28 @@
 
   // ─── Plugin Entry Point ──────────────────────────────────────────────────────
 
+  /**
+   * Return true when the device is likely a narrow or touch-primary screen.
+   * Uses matchMedia when available, falls back to innerWidth + touch points.
+   */
+  function isMobileDevice() {
+    if (window.matchMedia) {
+      return window.matchMedia('(max-width:600px),(pointer:coarse)').matches;
+    }
+    return (window.innerWidth <= 600) ||
+           (navigator.maxTouchPoints > 0);
+  }
+
   function install(hook, vm) {
     var cfg = mergeConfig(DEFAULT_CONFIG, (window.$docsify || {}).pdfPreview);
 
     if (!cfg.enabled) return;
+
+    // Override backend to pdfjs on mobile (unless user set mobilePdfjs: false).
+    // Native iframes cannot be controlled for zoom/fit on mobile browsers.
+    if (cfg.mobilePdfjs && cfg.backend === 'native' && isMobileDevice()) {
+      cfg = mergeConfig(cfg, { backend: 'pdfjs' });
+    }
 
     injectStyles();
 
