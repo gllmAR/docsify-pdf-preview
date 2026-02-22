@@ -40,14 +40,12 @@ Add a `pdfPreview` block to your `window.$docsify` config:
   window.$docsify = {
     pdfPreview: {
       enabled: true,          // Enable/disable the plugin
-      mode: 'modal',          // "inline" | "modal" | "both"
+      mode: 'inline',         // "inline" | "modal" | "both"
       backend: 'native',      // "native" (iframe) | "pdfjs"
       mobilePdfjs: true,      // Auto-switch to pdfjs on narrow/touch screens
-      height: 'auto',          // Inline preview height ('auto' = fit one full page, or any CSS length e.g. '75vh')
-      modalWidth: '90vw',     // Modal width
-      modalHeight: '90vh',    // Modal height
-      downloadButton: true,   // Show Download button
-      openButton: true,       // Show Open in new tab button
+      height: 'auto',         // Inline preview height ('auto' = fit one full page, or any CSS length e.g. '75vh')
+      modalWidth: '96vw',     // Modal width
+      modalHeight: '97vh',    // Modal height
       routeParam: null,       // URL param for modal state, e.g. "pdf"
       match: /\.pdf(\?.*)?$/i // Regex to match PDF links
     }
@@ -61,17 +59,17 @@ All settings are optional – the defaults above apply when not specified.
 
 ## Modes
 
-### `mode: "modal"` (default)
+### `mode: "inline"` (default)
+
+The PDF link is replaced by an embedded viewer directly in the page.
+
+### `mode: "modal"`
 
 A **Preview PDF** button is appended after each PDF link. Clicking it opens a full-screen modal overlay with the PDF rendered in an iframe. The modal can be closed with:
 
 - The **✕** close button
 - Pressing **Escape**
 - Clicking the backdrop
-
-### `mode: "inline"`
-
-The PDF link is replaced by an embedded viewer directly in the page.
 
 ### `mode: "both"`
 
