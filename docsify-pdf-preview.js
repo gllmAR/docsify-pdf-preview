@@ -15,8 +15,6 @@
     height: '75vh',
     modalWidth: '96vw',
     modalHeight: '97vh',
-    downloadButton: true,
-    openButton: true,
     routeParam: null,        // e.g. "pdf" – enables URL state
     match: /\.pdf(\?.*)?$/i
   };
