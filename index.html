@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docsify PDF Preview</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Docsify plugin for inline and modal PDF preview" />
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+  <link rel="stylesheet" href="docsify-pdf-preview.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    window.$docsify = {
+      name: 'Docsify PDF Preview',
+      repo: 'https://github.com/gllmAR/docsify-pdf-preview',
+      loadSidebar: false,
+      pdfPreview: {
+        enabled: true,
+        mode: 'modal',
+        backend: 'native',
+        height: '75vh',
+        modalWidth: '90vw',
+        modalHeight: '90vh',
+        downloadButton: true,
+        openButton: true,
+        routeParam: null,
+        match: /\.pdf(\?.*)?$/i
+      }
+    };
+  </script>
+
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="docsify-pdf-preview.js"></script>
+</body>
+</html>
