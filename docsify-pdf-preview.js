@@ -10,7 +10,7 @@
 
   var DEFAULT_CONFIG = {
     enabled: true,
-    mode: 'modal',           // "inline" | "modal" | "both"
+    mode: 'inline',          // "inline" | "modal" | "both"
     backend: 'native',       // "native" | "pdfjs"
     height: '75vh',
     modalWidth: '96vw',

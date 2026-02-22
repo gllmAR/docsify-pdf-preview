@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/core.min.css">
   <!-- Core Dark - Dark Mode Only (add-on), to disable remove or comment out the below line -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/addons/core-dark.min.css" media="(prefers-color-scheme: dark)" />
-
 </head>
 <body>
   <div id="app"></div>
@@ -19,18 +18,21 @@
       repo: 'https://github.com/gllmAR/docsify-pdf-preview',
       loadSidebar: true,
       subMaxLevel: 2,
-      pdfPreview: {
-        enabled: true,
-        mode: 'modal',
-        backend: 'native',
-        height: '75vh',
-        modalWidth: '96vw',
-        modalHeight: '97vh',
-        downloadButton: true,
-        openButton: true,
-        routeParam: null,
-        match: /\.pdf(\?.*)?$/i
-      }
+
+      // pdfPreview: all options are optional — defaults shown below.
+      // Remove the entire block to use defaults.
+      // pdfPreview: {
+      //   enabled: true,          // set false to disable the plugin entirely
+      //   mode: 'inline',         // 'inline' | 'modal' | 'both'
+      //   backend: 'native',      // 'native' (iframe) | 'pdfjs' (page nav + zoom)
+      //   height: '75vh',         // inline preview height (any CSS length)
+      //   modalWidth: '96vw',     // modal width  (any CSS length)
+      //   modalHeight: '97vh',    // modal height (any CSS length)
+      //   downloadButton: true,   // show Download button (inline mode)
+      //   openButton: true,       // show Open-in-tab button (inline mode)
+      //   routeParam: null,       // e.g. 'pdf' — appends ?pdf=<url> to hash for back-button support
+      //   match: /\.pdf(\?.*)?$/i // regex to match links that should be previewed
+      // }
     };
   </script>
 
