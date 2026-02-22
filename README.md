@@ -141,6 +141,49 @@ With `mode: "modal"`, a **📄 Preview PDF** button appears after the link. Clic
 
 ---
 
+## Per-Link Options
+
+Override any global config option on a single link using the `:pdf-preview` token in the Markdown link title — the same position Docsify uses for `':include'`:
+
+```markdown
+[Label](file.pdf ':pdf-preview key=value key2=value2')
+```
+
+The token is stripped before rendering so it never appears as a browser tooltip.
+
+### Supported keys
+
+| Key | Values | Default |
+|-----|--------|---------|
+| `mode` | `inline` \| `modal` \| `both` | global config |
+| `backend` | `native` \| `pdfjs` | global config |
+| `height` | any CSS length | `75vh` |
+| `modalWidth` | any CSS length | `90vw` |
+| `modalHeight` | any CSS length | `90vh` |
+
+### Examples
+
+```markdown
+<!-- Force inline with a specific height -->
+[Report](report.pdf ':pdf-preview mode=inline height=60vh')
+
+<!-- Use PDF.js backend with page navigation -->
+[Slides](slides.pdf ':pdf-preview mode=inline backend=pdfjs height=80vh')
+
+<!-- Narrow modal -->
+[Contract](contract.pdf ':pdf-preview mode=modal modalWidth=70vw modalHeight=85vh')
+
+<!-- Combine: both mode + pdfjs -->
+[Manual](manual.pdf ':pdf-preview mode=both backend=pdfjs')
+
+<!-- Quoted values also work -->
+[Doc](doc.pdf ':pdf-preview mode="inline" height="50vh"')
+```
+
+Unknown keys are silently ignored. If the token is present but empty (`:pdf-preview` with no keys), the global config is used unchanged.
+
+---
+
 ## License
 
 MIT

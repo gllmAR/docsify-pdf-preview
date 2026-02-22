@@ -24,28 +24,30 @@
   // ─── CSS Injection ───────────────────────────────────────────────────────────
 
   var PLUGIN_CSS = [
-    '.pdf-preview-inline{border:1px solid #e0e0e0;border-radius:4px;overflow:hidden;margin:1em 0;font-family:inherit}',
-    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f5f5f5;border-bottom:1px solid #e0e0e0;gap:8px;flex-wrap:wrap}',
-    '.pdf-preview-filename{font-weight:600;font-size:.9em;word-break:break-all;flex:1;min-width:0}',
+    '.pdf-preview-inline{border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-l,4px);overflow:hidden;margin:1em 0;font-family:inherit}',
+    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:8px;flex-wrap:wrap}',
+    '.pdf-preview-filename{font-weight:600;font-size:.9em;word-break:break-all;flex:1;min-width:0;color:var(--base-color)}',
     '.pdf-preview-controls{display:flex;gap:6px;flex-shrink:0}',
-    '.pdf-preview-frame-area{position:relative;width:100%;background:#fafafa}',
+    '.pdf-preview-frame-area{position:relative;width:100%;background:var(--base-background-color)}',
     '.pdf-preview-frame{display:block;width:100%;height:100%;border:none}',
-    '.pdf-preview-fallback{display:none;padding:16px;color:#666;font-size:.9em;background:#fff8e1;border-top:1px solid #ffe082}',
+    '.pdf-preview-fallback{display:none;padding:16px;color:var(--base-color);font-size:.9em;background:color-mix(in srgb,var(--theme-color) 8%,var(--base-background-color));border-top:1px solid var(--sidebar-border-color)}',
     '.pdf-preview-frame-area>.pdf-preview-frame:not([src])+.pdf-preview-fallback,',
     '.pdf-preview-frame-area>.pdf-preview-frame[src=""]+.pdf-preview-fallback{display:block}',
-    '.pdf-btn{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid #bbb;border-radius:3px;background:#fff;color:#333;font-size:.82em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s;font-family:inherit}',
-    '.pdf-btn:hover,.pdf-btn:focus{background:#e8f0fe;border-color:#4285f4;color:#1a73e8;outline:none}',
-    '.pdf-btn:focus-visible{outline:2px solid #4285f4;outline-offset:2px}',
-    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;margin:0 4px;border:1px solid #bbb;border-radius:3px;background:#fff;color:#333;font-size:.875em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s}',
-    '.pdf-preview-modal-btn:hover,.pdf-preview-modal-btn:focus{background:#e8f0fe;border-color:#4285f4;color:#1a73e8;outline:none}',
-    '.pdf-preview-modal-btn:focus-visible{outline:2px solid #4285f4;outline-offset:2px}',
+    '.pdf-btn{display:inline-flex;align-items:center;padding:4px 10px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.82em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;font-family:inherit}',
+    '.pdf-btn:hover,.pdf-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
+    '.pdf-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
+    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;margin:0 4px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.875em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s}',
+    '.pdf-preview-modal-btn:hover,.pdf-preview-modal-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
+    '.pdf-preview-modal-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
     '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}',
-    '.pdf-preview-modal{display:flex;flex-direction:column;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);max-width:100%;max-height:100%;width:90vw;height:90vh;box-sizing:border-box}',
-    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f5f5f5;border-bottom:1px solid #e0e0e0;gap:8px;flex-shrink:0;flex-wrap:wrap}',
-    '.pdf-preview-modal-filename{font-weight:600;font-size:.9em;word-break:break-all;flex:1;min-width:0}',
+    '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color);border-radius:var(--border-radius-l,4px);overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);max-width:100%;max-height:100%;width:90vw;height:90vh;box-sizing:border-box}',
+    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:8px;flex-shrink:0}',
+    '.pdf-preview-modal-filename{font-weight:600;font-size:.95em;word-break:break-all;flex:1;text-align:center;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.pdf-preview-modal-filename:hover,.pdf-preview-modal-filename:focus{text-decoration:underline;outline:none}',
     '.pdf-preview-modal-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}',
-    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid #bbb;border-radius:3px;background:#fff;color:#555;font-size:1em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s;padding:0}',
-    '.pdf-modal-close-btn:hover,.pdf-modal-close-btn:focus{background:#fce8e6;border-color:#d93025;color:#d93025;outline:none}',
+    '.pdf-preview-modal-spacer{width:28px;flex-shrink:0}',  /* balances the close btn to keep title centered */
+    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:1em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0}',
+    '.pdf-modal-close-btn:hover,.pdf-modal-close-btn:focus{background:color-mix(in srgb,#d93025 10%,var(--base-background-color));border-color:#d93025;color:#d93025;outline:none}',
     '.pdf-modal-close-btn:focus-visible{outline:2px solid #d93025;outline-offset:2px}',
     '.pdf-preview-modal-body{flex:1;overflow:auto;position:relative;display:flex;flex-direction:column}',
     '.pdf-preview-modal-body .pdf-preview-frame{flex:1;min-height:0}',
@@ -115,6 +117,41 @@
   }
 
   /**
+   * Parse per-link PDF options from a link title attribute.
+   *
+   * Recognises the Docsify-style ':pdf-preview ...' token:
+   *   [label](file.pdf ':pdf-preview mode=inline height=60vh backend=pdfjs')
+   *
+   * Supported keys (all optional, override global config):
+   *   mode          inline | modal | both
+   *   backend       native | pdfjs
+   *   height        any CSS length  (inline mode)
+   *   modalWidth    any CSS length  (modal mode)
+   *   modalHeight   any CSS length  (modal mode)
+   *
+   * Returns an object with only the keys that were explicitly provided.
+   */
+  function parsePdfLinkOptions(title) {
+    if (!title) return null;
+    var marker = title.indexOf(':pdf-preview');
+    if (marker === -1) return null;
+    var raw = title.slice(marker + ':pdf-preview'.length).trim();
+    if (!raw) return {};
+
+    var opts = {};
+    var allowed = { mode: true, backend: true, height: true, modalWidth: true, modalHeight: true };
+    // match key=value pairs; values may be bare words or quoted strings
+    var re = /(\w+)=(?:"([^"]*)"|'([^']*)'|(\S+))/g;
+    var m;
+    while ((m = re.exec(raw)) !== null) {
+      var key = m[1];
+      var val = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
+      if (allowed[key]) opts[key] = val;
+    }
+    return opts;
+  }
+
+  /**
    * Extract the filename from a URL path.
    */
   function filenameFromUrl(url) {
@@ -168,8 +205,70 @@
   // ─── 2.1 Link Scanner Module ─────────────────────────────────────────────────
 
   /**
+   * Encode ':pdf-preview opts' from a markdown link title into the URL as
+   * ?__pdfOpts=<encoded> so it survives Docsify's rendering pipeline intact.
+   *
+   * Called from hook.beforeEach on the raw markdown string.
+   * Handles both single- and double-quoted titles.
+   */
+  function encodePdfOptsInMarkdown(content) {
+    // Matches: (url 'any text :pdf-preview opts') or (url "...")
+    return content.replace(
+      /\(([^\s)]+)\s+(['"])([^'"]*:pdf-preview[^'"]*)\2\)/g,
+      function (match, url, _quote, title) {
+        var marker = title.indexOf(':pdf-preview');
+        var rawOpts = title.slice(marker + ':pdf-preview'.length).trim();
+        var cleanTitle = title.slice(0, marker).trim();
+        var sep = url.indexOf('?') === -1 ? '?' : '&';
+        var newUrl = url + sep + '__pdfOpts=' + encodeURIComponent(rawOpts);
+        // Keep any remaining title text so Docsify renders the title attr normally
+        return cleanTitle
+          ? '(' + newUrl + ' "' + cleanTitle + '")'
+          : '(' + newUrl + ')';
+      }
+    );
+  }
+
+  /**
+   * Extract per-link options from a __pdfOpts query param in the href,
+   * returning { cleanHref, linkOpts } where cleanHref has the param stripped.
+   */
+  function extractPdfOpts(href) {
+    if (href.indexOf('__pdfOpts=') === -1) return { cleanHref: href, linkOpts: null };
+
+    // Preserve hash
+    var hashIdx = href.indexOf('#');
+    var hash = hashIdx !== -1 ? href.slice(hashIdx) : '';
+    var withoutHash = hashIdx !== -1 ? href.slice(0, hashIdx) : href;
+
+    var qIdx = withoutHash.indexOf('?');
+    var base = qIdx !== -1 ? withoutHash.slice(0, qIdx) : withoutHash;
+    var query = qIdx !== -1 ? withoutHash.slice(qIdx + 1) : '';
+
+    var rawOpts = '';
+    var remaining = [];
+    query.split('&').forEach(function (p) {
+      if (!p) return;
+      if (p.indexOf('__pdfOpts=') === 0) {
+        rawOpts = decodeURIComponent(p.slice('__pdfOpts='.length));
+      } else {
+        remaining.push(p);
+      }
+    });
+
+    var cleanHref = base + (remaining.length ? '?' + remaining.join('&') : '') + hash;
+    return {
+      cleanHref: cleanHref,
+      linkOpts: rawOpts ? parsePdfLinkOptions(':pdf-preview ' + rawOpts) : {}
+    };
+  }
+
+  /**
    * Find all unprocessed PDF links in the markdown section.
-   * Returns array of { element, href, resolvedUrl, filename }.
+   * Returns array of { element, href, resolvedUrl, filename, linkOpts }.
+   *
+   * Per-link options are encoded into the href as ?__pdfOpts=... by
+   * encodePdfOptsInMarkdown() (called in hook.beforeEach) and decoded here.
    */
   function scanPdfLinks(cfg, basePath, currentRoute) {
     var links = document.querySelectorAll('.markdown-section a[href]');
@@ -177,25 +276,28 @@
     for (var i = 0; i < links.length; i++) {
       var el = links[i];
 
-      // Skip already-processed links
       if (el.getAttribute('data-pdf-preview-processed')) continue;
-
-      // Skip links inside code blocks
       if (el.closest('code, pre')) continue;
 
       var href = el.getAttribute('href');
-      if (!cfg.match.test(href)) continue;
 
-      if (!isSafeUrl(href)) continue;
+      // Extract and strip __pdfOpts before URL safety / match checks
+      var extracted = extractPdfOpts(href);
+      var cleanHref = extracted.cleanHref;
+      var linkOpts  = extracted.linkOpts;
 
-      var resolvedUrl = resolvePdfUrl(href, basePath, currentRoute);
+      if (!cfg.match.test(cleanHref)) continue;
+      if (!isSafeUrl(cleanHref)) continue;
+
+      var resolvedUrl = resolvePdfUrl(cleanHref, basePath, currentRoute);
       if (!isSafeUrl(resolvedUrl)) continue;
 
       results.push({
         element: el,
-        href: href,
+        href: cleanHref,
         resolvedUrl: resolvedUrl,
-        filename: filenameFromUrl(href)
+        filename: filenameFromUrl(cleanHref),
+        linkOpts: linkOpts
       });
     }
     return results;
@@ -287,10 +389,9 @@
     overlay.innerHTML =
       '<div class="pdf-preview-modal" role="document">' +
         '<div class="pdf-preview-modal-header">' +
-          '<span class="pdf-preview-modal-filename" id="pdf-preview-modal-title"></span>' +
+          '<span class="pdf-preview-modal-spacer"></span>' +
+          '<a class="pdf-preview-modal-filename" id="pdf-preview-modal-title" href="#" target="_blank" rel="noopener noreferrer"></a>' +
           '<span class="pdf-preview-modal-actions">' +
-            '<a class="pdf-btn" id="pdf-modal-open-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Open in new tab">Open</a>' +
-            '<a class="pdf-btn" id="pdf-modal-dl-btn" href="#" aria-label="Download">Download</a>' +
             '<button class="pdf-modal-close-btn" id="pdf-modal-close-btn" type="button" aria-label="Close PDF viewer">&#x2715;</button>' +
           '</span>' +
         '</div>' +
@@ -362,30 +463,14 @@
     overlay.querySelector('.pdf-preview-modal').style.width = cfg.modalWidth;
     overlay.querySelector('.pdf-preview-modal').style.height = cfg.modalHeight;
 
-    overlay.querySelector('#pdf-preview-modal-title').textContent = info.filename;
+    var titleLink = overlay.querySelector('#pdf-preview-modal-title');
+    titleLink.textContent = info.filename;
+    titleLink.href = info.resolvedUrl;
+    titleLink.setAttribute('aria-label', 'Open ' + info.filename + ' in new tab');
 
-    var openBtn = overlay.querySelector('#pdf-modal-open-btn');
-    var dlBtn = overlay.querySelector('#pdf-modal-dl-btn');
     var frame = overlay.querySelector('#pdf-preview-modal-frame');
     var fbOpen = overlay.querySelector('#pdf-modal-fallback-open');
     var fbDl = overlay.querySelector('#pdf-modal-fallback-dl');
-
-    if (cfg.openButton) {
-      openBtn.style.display = '';
-      openBtn.href = info.resolvedUrl;
-      openBtn.setAttribute('aria-label', 'Open ' + info.filename + ' in new tab');
-    } else {
-      openBtn.style.display = 'none';
-    }
-
-    if (cfg.downloadButton) {
-      dlBtn.style.display = '';
-      dlBtn.href = info.resolvedUrl;
-      dlBtn.setAttribute('download', info.filename);
-      dlBtn.setAttribute('aria-label', 'Download ' + info.filename);
-    } else {
-      dlBtn.style.display = 'none';
-    }
 
     frame.src = info.resolvedUrl;
     fbOpen.href = info.resolvedUrl;
@@ -610,6 +695,11 @@
     var el = info.element;
     el.setAttribute('data-pdf-preview-processed', '1');
 
+    // Merge per-link options (from ':pdf-preview ...' syntax) over global config
+    if (info.linkOpts && Object.keys(info.linkOpts).length > 0) {
+      cfg = mergeConfig(cfg, info.linkOpts);
+    }
+
     switch (cfg.mode) {
       case 'inline':
         renderInline(info, cfg);
@@ -723,10 +813,10 @@
       });
     }
 
-    // Close modal on route change (no duplicate bindings after navigation)
+    // Close modal on route change + encode per-link :pdf-preview opts into URLs
     hook.beforeEach(function (content, next) {
       onRouteChange();
-      next(content);
+      next(encodePdfOptsInMarkdown(content));
     });
   }
 

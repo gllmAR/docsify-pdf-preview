@@ -1,2 +1,3 @@
 - [Home](/)
 - [PDF Samples](samples.md)
+- [Per-Link Tests](tests.md)
