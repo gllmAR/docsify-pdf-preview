@@ -48,6 +48,18 @@
     /* ── Fallback ── */
     '.pdf-preview-fallback{padding:16px;color:var(--base-color,#000);font-size:.9em;text-align:center;background:color-mix(in srgb,var(--theme-color,#42b983) 8%,var(--base-background-color,#fff));border-top:1px solid var(--sidebar-border-color,#e2e2e3)}',
 
+    /* ── Mobile tap card (iOS / touch fallback) ── */
+    '.pdf-mobile-card{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--base-color,#000);padding:24px 16px;background:color-mix(in srgb,var(--theme-color,#42b983) 6%,var(--base-background-color,#fff));border-radius:var(--border-radius-m,4px);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .15s}',
+    '.pdf-mobile-card:active{background:color-mix(in srgb,var(--theme-color,#42b983) 16%,var(--base-background-color,#fff))}',
+    '.pdf-mobile-card-icon{font-size:2.5em;margin-bottom:8px;line-height:1}',
+    '.pdf-mobile-card-name{font-weight:600;font-size:.95em;margin-bottom:4px;word-break:break-word;color:var(--theme-color,#42b983)}',
+    '.pdf-mobile-card-hint{font-size:.78em;opacity:.55;margin-top:2px}',
+    '.pdf-mobile-card-thumb{max-width:100%;border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-m,2px);margin-bottom:10px}',
+    '@media(pointer:coarse){.pdf-mobile-card{padding:20px 12px;min-height:80px}}',
+    '@media(max-width:600px){.pdf-mobile-card{padding:16px 10px}}',
+    '.pdf-mobile-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;justify-content:center}',
+    '.pdf-mobile-actions .pdf-btn{min-height:40px;min-width:60px;padding:6px 14px;font-size:.88em}',
+
     /* ── Modal ── */
     '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box}',
     '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color,#fff);border-radius:0;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:100%;max-height:100%;box-sizing:border-box}',
@@ -723,12 +735,110 @@
   }
 
   /**
+   * Render a mobile-friendly "tap to open" card.
+   * Used on iOS and as fallback when both PDF.js and iframe fail.
+   * Optionally renders a thumbnail of page 1 via PDF.js if available.
+   */
+  function renderMobileCard(container, url, cfg) {
+    var safeUrl = sanitizeAttr(url);
+    var safeName = sanitizeAttr(filenameFromUrl(url));
+
+    var card = document.createElement('a');
+    card.className = 'pdf-mobile-card';
+    card.href = url;
+    card.target = '_blank';
+    card.rel = 'noopener noreferrer';
+    card.setAttribute('aria-label', 'Open ' + filenameFromUrl(url));
+
+    // Thumbnail canvas (filled later if PDF.js is available)
+    var thumb = document.createElement('canvas');
+    thumb.className = 'pdf-mobile-card-thumb';
+    thumb.style.display = 'none';
+    card.appendChild(thumb);
+
+    var icon = document.createElement('div');
+    icon.className = 'pdf-mobile-card-icon';
+    icon.textContent = '\uD83D\uDCC4'; // 📄
+    card.appendChild(icon);
+
+    var name = document.createElement('div');
+    name.className = 'pdf-mobile-card-name';
+    name.textContent = filenameFromUrl(url);
+    card.appendChild(name);
+
+    var hint = document.createElement('div');
+    hint.className = 'pdf-mobile-card-hint';
+    hint.textContent = 'Tap to open PDF';
+    card.appendChild(hint);
+
+    // Action buttons
+    var actions = document.createElement('div');
+    actions.className = 'pdf-mobile-actions';
+    actions.innerHTML =
+      '<a class="pdf-btn" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a>' +
+      '<a class="pdf-btn" href="' + safeUrl + '" download="' + safeName + '">Download</a>';
+    // Prevent card navigation when clicking action buttons
+    actions.addEventListener('click', function (e) { e.stopPropagation(); });
+    card.appendChild(actions);
+
+    container.innerHTML = '';
+    container.appendChild(card);
+
+    // Try to render a thumbnail of page 1
+    _tryRenderThumbnail(thumb, icon, url);
+  }
+
+  /**
+   * If PDF.js is available, render a small thumbnail of page 1
+   * on the given canvas and hide the fallback icon.
+   */
+  function _tryRenderThumbnail(canvas, iconEl, url) {
+    loadPdfjs(function (err) {
+      if (err || !window.pdfjsLib) return;
+      var pdfjs = window.pdfjsLib;
+      var thumbWidth = Math.min(window.innerWidth - 40, 400);
+      var dpr = window.devicePixelRatio || 1;
+
+      function renderFromDoc(doc) {
+        doc.getPage(1).then(function (page) {
+          var baseVp = page.getViewport({ scale: 1.0 });
+          var scale = (thumbWidth / baseVp.width) * dpr;
+          var vp = page.getViewport({ scale: scale });
+          canvas.width = vp.width;
+          canvas.height = vp.height;
+          canvas.style.width = Math.round(vp.width / dpr) + 'px';
+          canvas.style.height = Math.round(vp.height / dpr) + 'px';
+          return page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+        }).then(function () {
+          canvas.style.display = '';
+          if (iconEl) iconEl.style.display = 'none';
+        }).catch(function () { /* thumbnail is optional */ });
+      }
+
+      if (_pdfDocCache[url]) {
+        renderFromDoc(_pdfDocCache[url]);
+      } else {
+        fetchPdfBytes(url).then(function (data) {
+          return pdfjs.getDocument({ data: data }).promise;
+        }).then(function (doc) {
+          _pdfDocCache[url] = doc;
+          renderFromDoc(doc);
+        }).catch(function () { /* thumbnail is optional */ });
+      }
+    });
+  }
+
+  /**
    * Last-resort fallback: render the PDF in a native browser iframe.
-   * The browser's built-in PDF viewer handles this without CORS issues
-   * (iframe document loads are not subject to CORS). We can't control
-   * zoom/page-sizing, but at least the PDF is visible.
+   * On iOS / iPadOS, iframes cannot render PDFs — show a mobile card instead.
    */
   function renderIframeFallback(container, url, cfg) {
+    // iOS cannot render PDFs in iframes; use mobile card
+    if (isIOS()) {
+      renderMobileCard(container, url, cfg);
+      return;
+    }
+
     var safeUrl = sanitizeAttr(url);
     var safeName = sanitizeAttr(filenameFromUrl(url));
     // Append #view=FitH to hint the browser to fit-width
@@ -752,6 +862,11 @@
   }
 
   function showFallback(container, url) {
+    // On iOS use the mobile card for a better touch experience
+    if (isIOS()) {
+      renderMobileCard(container, url, {});
+      return;
+    }
     var safeUrl = sanitizeAttr(url);
     var safeName = sanitizeAttr(filenameFromUrl(url));
     container.innerHTML =
