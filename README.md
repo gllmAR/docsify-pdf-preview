@@ -23,7 +23,7 @@ Add a single `<script>` tag after `docsify.min.js` — styles are injected autom
 <script src="docsify-pdf-preview.js"></script>
 ```
 
-Or use a CDN:
+Or use github as CDN:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/gllmAR/docsify-pdf-preview/docsify-pdf-preview.js"></script>

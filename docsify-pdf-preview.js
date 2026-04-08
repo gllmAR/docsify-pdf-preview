@@ -11,8 +11,6 @@
   var DEFAULT_CONFIG = {
     enabled: true,
     mode: 'inline',          // "inline" | "modal" | "both"
-    backend: 'native',       // "native" | "pdfjs"
-    mobilePdfjs: true,       // force pdfjs backend on narrow/touch screens
     height: 'auto',          // 'auto' = fit one full page; or any CSS length
     modalWidth: '96vw',
     modalHeight: '97vh',
@@ -22,61 +20,78 @@
 
   var _routeParam = null;
 
-  // ─── CSS Injection ───────────────────────────────────────────────────────────
+  // ─── CSS ─────────────────────────────────────────────────────────────────────
 
   var PLUGIN_CSS = [
-    '.pdf-preview-inline{border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-l,4px);overflow:hidden;margin:1em 0;font-family:inherit}',
-    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:color-mix(in srgb,var(--base-background-color) 85%,var(--base-color) 15%);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0}',
-    '.pdf-preview-filename{font-weight:600;font-size:.88em;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+    /* ── Inline container ── */
+    '.pdf-preview-inline{border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-l,4px);overflow:hidden;margin:1em 0;font-family:inherit;display:flex;flex-direction:column}',
+    '.pdf-preview-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:color-mix(in srgb,var(--base-background-color,#fff) 85%,var(--base-color,#000) 15%);border-bottom:1px solid var(--sidebar-border-color,#e2e2e3);gap:6px;flex-shrink:0}',
+    '.pdf-preview-filename{font-weight:600;font-size:.88em;color:var(--theme-color,#42b983);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
     '.pdf-preview-filename:hover,.pdf-preview-filename:focus{text-decoration:underline;outline:none}',
     '.pdf-header-center{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-width:0}',
     '.pdf-preview-controls{display:flex;gap:4px;flex-shrink:0}',
-    '.pdf-inline-expand-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0;flex-shrink:0}',
-    '.pdf-inline-expand-btn:hover,.pdf-inline-expand-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
-    '.pdf-inline-expand-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
-    '.pdf-preview-frame-area{position:relative;width:100%;background:var(--base-background-color);overflow-y:auto}',
-    '.pdf-preview-frame{display:block;width:100%;height:100%;border:none}',
-    '.pdf-preview-fallback{display:none;padding:12px;color:var(--base-color);font-size:.9em;background:color-mix(in srgb,var(--theme-color) 8%,var(--base-background-color));border-top:1px solid var(--sidebar-border-color)}',
-    '.pdf-preview-frame-area>.pdf-preview-frame:not([src])+.pdf-preview-fallback,',
-    '.pdf-preview-frame-area>.pdf-preview-frame[src=""]+.pdf-preview-fallback{display:block}',
-    '.pdf-btn{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;font-family:inherit}',
-    '.pdf-btn:hover,.pdf-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
-    '.pdf-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
-    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;margin:0 4px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.85em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s}',
-    '.pdf-preview-modal-btn:hover,.pdf-preview-modal-btn:focus{background:color-mix(in srgb,var(--theme-color) 12%,var(--base-background-color));border-color:var(--theme-color);color:var(--theme-color);outline:none}',
-    '.pdf-preview-modal-btn:focus-visible{outline:2px solid var(--theme-color);outline-offset:2px}',
+    '.pdf-inline-expand-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-m,2px);background:var(--base-background-color,#fff);color:var(--base-color,#000);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0;flex-shrink:0}',
+    '.pdf-inline-expand-btn:hover,.pdf-inline-expand-btn:focus{background:color-mix(in srgb,var(--theme-color,#42b983) 12%,var(--base-background-color,#fff));border-color:var(--theme-color,#42b983);color:var(--theme-color,#42b983);outline:none}',
+    '.pdf-inline-expand-btn:focus-visible{outline:2px solid var(--theme-color,#42b983);outline-offset:2px}',
+
+    /* ── Frame / canvas area ── */
+    '.pdf-preview-frame-area{position:relative;width:100%;background:var(--base-background-color,#fff);overflow:hidden;box-sizing:border-box}',
+
+    /* ── Buttons ── */
+    '.pdf-btn{display:inline-flex;align-items:center;padding:3px 8px;border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-m,2px);background:var(--base-background-color,#fff);color:var(--base-color,#000);font-size:.8em;text-decoration:none;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s;font-family:inherit}',
+    '.pdf-btn:hover,.pdf-btn:focus{background:color-mix(in srgb,var(--theme-color,#42b983) 12%,var(--base-background-color,#fff));border-color:var(--theme-color,#42b983);color:var(--theme-color,#42b983);outline:none}',
+    '.pdf-btn:focus-visible{outline:2px solid var(--theme-color,#42b983);outline-offset:2px}',
+    '.pdf-preview-modal-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;margin:0 4px;border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-m,2px);background:var(--base-background-color,#fff);color:var(--base-color,#000);font-size:.85em;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s}',
+    '.pdf-preview-modal-btn:hover,.pdf-preview-modal-btn:focus{background:color-mix(in srgb,var(--theme-color,#42b983) 12%,var(--base-background-color,#fff));border-color:var(--theme-color,#42b983);color:var(--theme-color,#42b983);outline:none}',
+    '.pdf-preview-modal-btn:focus-visible{outline:2px solid var(--theme-color,#42b983);outline-offset:2px}',
+
+    /* ── Fallback ── */
+    '.pdf-preview-fallback{padding:16px;color:var(--base-color,#000);font-size:.9em;text-align:center;background:color-mix(in srgb,var(--theme-color,#42b983) 8%,var(--base-background-color,#fff));border-top:1px solid var(--sidebar-border-color,#e2e2e3)}',
+
+    /* ── Modal ── */
     '.pdf-preview-modal-overlay{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:0;box-sizing:border-box}',
-    '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color);border-radius:0;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:100%;max-height:100%;width:96vw;height:97vh;box-sizing:border-box}',
-    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--base-background-color);border-bottom:1px solid var(--sidebar-border-color);gap:6px;flex-shrink:0;opacity:1}',
-    '.pdf-preview-modal-filename{font-weight:600;font-size:.88em;color:var(--theme-color);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
+    '.pdf-preview-modal{display:flex;flex-direction:column;background:var(--base-background-color,#fff);border-radius:0;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);max-width:100%;max-height:100%;box-sizing:border-box}',
+    '.pdf-preview-modal-header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:var(--base-background-color,#fff);border-bottom:1px solid var(--sidebar-border-color,#e2e2e3);gap:6px;flex-shrink:0}',
+    '.pdf-preview-modal-filename{font-weight:600;font-size:.88em;color:var(--theme-color,#42b983);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}',
     '.pdf-preview-modal-filename:hover,.pdf-preview-modal-filename:focus{text-decoration:underline;outline:none}',
     '.pdf-preview-modal-actions{display:flex;gap:4px;align-items:center;flex-shrink:0}',
     '.pdf-preview-modal-spacer{width:24px;flex-shrink:0}',
-    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color);border-radius:var(--border-radius-m,2px);background:var(--base-background-color);color:var(--base-color);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0}',
-    '.pdf-modal-close-btn:hover,.pdf-modal-close-btn:focus{background:color-mix(in srgb,#d93025 10%,var(--base-background-color));border-color:#d93025;color:#d93025;outline:none}',
+    '.pdf-modal-close-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:1px solid var(--sidebar-border-color,#e2e2e3);border-radius:var(--border-radius-m,2px);background:var(--base-background-color,#fff);color:var(--base-color,#000);font-size:.8em;line-height:1;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s,color .15s;padding:0}',
+    '.pdf-modal-close-btn:hover,.pdf-modal-close-btn:focus{background:color-mix(in srgb,#d93025 10%,var(--base-background-color,#fff));border-color:#d93025;color:#d93025;outline:none}',
     '.pdf-modal-close-btn:focus-visible{outline:2px solid #d93025;outline-offset:2px}',
     '.pdf-preview-modal-body{flex:1;overflow:auto;position:relative;display:flex;flex-direction:column}',
-    '.pdf-preview-modal-body .pdf-preview-frame{flex:1;min-height:0}',
-    '.pdfjs-viewer{display:flex;flex-direction:column;height:100%;background:#525659;touch-action:pan-y}',
-    '.pdfjs-controls{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:6px 10px;background:#3c3c3c;flex-shrink:0;flex-wrap:wrap}',
-    '.pdfjs-page-info{color:#fff;font-size:.85em;min-width:80px;text-align:center}',
-    '.pdfjs-canvas-wrap{position:relative;display:flex;justify-content:center}',
-    '.pdfjs-canvas{display:block;margin:0 auto;max-width:100%;touch-action:manipulation}',
-    '.pdfjs-tap-prev,.pdfjs-tap-next{position:absolute;top:0;bottom:0;width:22%;min-width:44px;background:transparent;border:none;cursor:pointer;z-index:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation}',
+
+    /* ── PDF.js viewer ── */
+    '.pdfjs-viewer{display:flex;flex-direction:column;background:color-mix(in srgb,var(--base-background-color,#fff) 90%,var(--base-color,#000) 10%)}',
+    '.pdfjs-controls{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:6px 10px;background:color-mix(in srgb,var(--theme-color,#42b983) 15%,var(--base-background-color,#fff) 85%);border-bottom:1px solid var(--sidebar-border-color,#e2e2e3);flex-shrink:0;flex-wrap:wrap}',
+    '.pdfjs-page-info{color:var(--base-color,#000);font-size:.85em;min-width:80px;text-align:center}',
+    '.pdfjs-canvas-wrap{position:relative;display:flex;justify-content:center;background:color-mix(in srgb,var(--base-background-color,#fff) 90%,var(--base-color,#000) 10%)}',
+    '.pdfjs-canvas{display:block;margin:0 auto;max-width:100%}',
+    '.pdfjs-text-layer{position:absolute;left:0;top:0;overflow:hidden;line-height:1;z-index:2;pointer-events:auto}',
+    '.pdfjs-text-layer span{color:transparent;position:absolute;white-space:pre;transform-origin:0% 0%;pointer-events:all}',
+    '.pdfjs-text-layer ::selection{background:rgba(0,100,200,0.3)}',
+    '.pdfjs-text-layer ::-moz-selection{background:rgba(0,100,200,0.3)}',
+    '.pdfjs-tap-prev,.pdfjs-tap-next{position:absolute;top:0;bottom:0;width:22%;min-width:44px;background:transparent !important;border:none !important;border-radius:0 !important;cursor:pointer;z-index:3;-webkit-tap-highlight-color:transparent;touch-action:manipulation;padding:0 !important;margin:0 !important;box-shadow:none !important;outline:none !important;opacity:0;appearance:none;-webkit-appearance:none}',
     '.pdfjs-tap-prev{left:0}.pdfjs-tap-next{right:0}',
-    '.pdfjs-swipe-hint{color:rgba(255,255,255,.55);font-size:.75em;text-align:center;padding:4px 0 6px;letter-spacing:.02em;user-select:none;flex-shrink:0}',
+    '.pdfjs-swipe-hint{color:color-mix(in srgb,var(--base-color,#000) 50%,transparent);font-size:.75em;text-align:center;padding:4px 0 6px;letter-spacing:.02em;user-select:none;flex-shrink:0}',
+
+    /* ── Loading indicator ── */
+    '.pdf-loading{display:flex;align-items:center;justify-content:center;padding:40px 20px;color:var(--base-color,#666);font-size:.9em;gap:8px}',
+    '.pdf-loading-spinner{width:18px;height:18px;border:2px solid var(--sidebar-border-color,#e2e2e3);border-top-color:var(--theme-color,#42b983);border-radius:50%;animation:pdfspin .8s linear infinite}',
+    '@keyframes pdfspin{to{transform:rotate(360deg)}}',
+
+    /* ── Mobile / touch ── */
     '@media(pointer:coarse){.pdf-btn{min-height:40px;min-width:40px;padding:6px 12px;font-size:.9em}}',
     '@media(max-width:600px){',
-    /* Override JS-set inline width/height on small screens */
     '.pdf-preview-modal{width:100vw !important;height:100vh !important;border-radius:0}',
     '.pdf-preview-modal-overlay{padding:0}',
     '.pdf-preview-header,.pdf-preview-modal-header{flex-wrap:wrap}',
+    '.pdf-preview-inline{margin:0.5em 0}',
+    '.pdfjs-controls{gap:3px;padding:4px 6px}',
+    '.pdfjs-controls .pdf-btn{padding:6px 10px;font-size:.85em}',
     '}'
   ].join('');
 
-  /**
-   * Inject plugin styles into <head> once. Idempotent.
-   */
   function injectStyles() {
     if (document.getElementById('docsify-pdf-preview-styles')) return;
     var style = document.createElement('style');
@@ -87,9 +102,6 @@
 
   // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-  /**
-   * Merge user config with defaults (shallow).
-   */
   function mergeConfig(defaults, user) {
     var cfg = {};
     for (var k in defaults) {
@@ -102,10 +114,6 @@
     return cfg;
   }
 
-  /**
-   * Sanitize a string for safe use as an HTML attribute value.
-   * Prevents script injection via crafted URLs.
-   */
   function sanitizeAttr(value) {
     return String(value)
       .replace(/&/g, '&amp;')
@@ -115,10 +123,6 @@
       .replace(/>/g, '&gt;');
   }
 
-  /**
-   * Validate that a URL is a safe http/https/relative URL (SR3).
-   * Rejects javascript: and data: schemes.
-   */
   function isSafeUrl(url) {
     if (!url || typeof url !== 'string') return false;
     var trimmed = url.trim().toLowerCase();
@@ -127,44 +131,6 @@
     return true;
   }
 
-  /**
-   * Parse per-link PDF options from a link title attribute.
-   *
-   * Recognises the Docsify-style ':pdf-preview ...' token:
-   *   [label](file.pdf ':pdf-preview mode=inline height=60vh backend=pdfjs')
-   *
-   * Supported keys (all optional, override global config):
-   *   mode          inline | modal | both
-   *   backend       native | pdfjs
-   *   height        any CSS length  (inline mode)
-   *   modalWidth    any CSS length  (modal mode)
-   *   modalHeight   any CSS length  (modal mode)
-   *
-   * Returns an object with only the keys that were explicitly provided.
-   */
-  function parsePdfLinkOptions(title) {
-    if (!title) return null;
-    var marker = title.indexOf(':pdf-preview');
-    if (marker === -1) return null;
-    var raw = title.slice(marker + ':pdf-preview'.length).trim();
-    if (!raw) return {};
-
-    var opts = {};
-    var allowed = { mode: true, backend: true, height: true, modalWidth: true, modalHeight: true };
-    // match key=value pairs; values may be bare words or quoted strings
-    var re = /(\w+)=(?:"([^"]*)"|'([^']*)'|(\S+))/g;
-    var m;
-    while ((m = re.exec(raw)) !== null) {
-      var key = m[1];
-      var val = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
-      if (allowed[key]) opts[key] = val;
-    }
-    return opts;
-  }
-
-  /**
-   * Extract the filename from a URL path.
-   */
   function filenameFromUrl(url) {
     try {
       var path = url.split('?')[0].split('#')[0];
@@ -175,55 +141,58 @@
     }
   }
 
-  // ─── 2.2 Path Resolver Module ────────────────────────────────────────────────
-
   /**
-   * Resolve a PDF href against the current Docsify route.
-   *
-   * Rules:
-   *  - absolute URL (http/https) → return as-is
-   *  - root-relative (/…)        → prepend basePath
-   *  - relative                  → resolve against current route directory
+   * Detect iOS / iPadOS — these platforms cannot render PDFs inside iframes.
    */
+  function isIOS() {
+    if (typeof navigator === 'undefined') return false;
+    var ua = navigator.userAgent || '';
+    // iPhone / iPad / iPod in classic UA strings
+    if (/iPhone|iPad|iPod/i.test(ua)) return true;
+    // iPadOS 13+ reports as Macintosh; detect via touch support
+    if (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return true;
+    return false;
+  }
+
+  function parsePdfLinkOptions(title) {
+    if (!title) return null;
+    var marker = title.indexOf(':pdf-preview');
+    if (marker === -1) return null;
+    var raw = title.slice(marker + ':pdf-preview'.length).trim();
+    if (!raw) return {};
+    var opts = {};
+    var allowed = { mode: true, height: true, modalWidth: true, modalHeight: true };
+    var re = /(\w+)=(?:"([^"]*)"|'([^']*)'|(\S+))/g;
+    var m;
+    while ((m = re.exec(raw)) !== null) {
+      var key = m[1];
+      var val = m[2] !== undefined ? m[2] : (m[3] !== undefined ? m[3] : m[4]);
+      if (allowed[key]) opts[key] = val;
+    }
+    return opts;
+  }
+
+  // ─── Path Resolver ───────────────────────────────────────────────────────────
+
   function resolvePdfUrl(href, basePath, currentRoute) {
-    if (/^https?:\/\//i.test(href)) {
-      return href;
-    }
-
+    if (/^https?:\/\//i.test(href)) return href;
     basePath = (basePath || '').replace(/\/$/, '');
+    if (href.charAt(0) === '/') return basePath + href;
 
-    if (href.charAt(0) === '/') {
-      return basePath + href;
-    }
-
-    // Relative: resolve against current route directory
     var routeDir = (currentRoute || '/').replace(/\/[^/]*$/, '') || '/';
-    // Combine and normalise
     var combined = routeDir.replace(/\/$/, '') + '/' + href;
-    // Collapse any ../ segments
     var parts = combined.split('/');
     var resolved = [];
     for (var i = 0; i < parts.length; i++) {
-      if (parts[i] === '..') {
-        resolved.pop();
-      } else if (parts[i] !== '.') {
-        resolved.push(parts[i]);
-      }
+      if (parts[i] === '..') resolved.pop();
+      else if (parts[i] !== '.') resolved.push(parts[i]);
     }
     return basePath + resolved.join('/');
   }
 
-  // ─── 2.1 Link Scanner Module ─────────────────────────────────────────────────
+  // ─── Link Scanner ───────────────────────────────────────────────────────────
 
-  /**
-   * Encode ':pdf-preview opts' from a markdown link title into the URL as
-   * ?__pdfOpts=<encoded> so it survives Docsify's rendering pipeline intact.
-   *
-   * Called from hook.beforeEach on the raw markdown string.
-   * Handles both single- and double-quoted titles.
-   */
   function encodePdfOptsInMarkdown(content) {
-    // Matches: (url 'any text :pdf-preview opts') or (url "...")
     return content.replace(
       /\(([^\s)]+)\s+(['"])([^'"]*:pdf-preview[^'"]*)\2\)/g,
       function (match, url, _quote, title) {
@@ -232,7 +201,6 @@
         var cleanTitle = title.slice(0, marker).trim();
         var sep = url.indexOf('?') === -1 ? '?' : '&';
         var newUrl = url + sep + '__pdfOpts=' + encodeURIComponent(rawOpts);
-        // Keep any remaining title text so Docsify renders the title attr normally
         return cleanTitle
           ? '(' + newUrl + ' "' + cleanTitle + '")'
           : '(' + newUrl + ')';
@@ -240,22 +208,14 @@
     );
   }
 
-  /**
-   * Extract per-link options from a __pdfOpts query param in the href,
-   * returning { cleanHref, linkOpts } where cleanHref has the param stripped.
-   */
   function extractPdfOpts(href) {
     if (href.indexOf('__pdfOpts=') === -1) return { cleanHref: href, linkOpts: null };
-
-    // Preserve hash
     var hashIdx = href.indexOf('#');
     var hash = hashIdx !== -1 ? href.slice(hashIdx) : '';
     var withoutHash = hashIdx !== -1 ? href.slice(0, hashIdx) : href;
-
     var qIdx = withoutHash.indexOf('?');
     var base = qIdx !== -1 ? withoutHash.slice(0, qIdx) : withoutHash;
     var query = qIdx !== -1 ? withoutHash.slice(qIdx + 1) : '';
-
     var rawOpts = '';
     var remaining = [];
     query.split('&').forEach(function (p) {
@@ -266,7 +226,6 @@
         remaining.push(p);
       }
     });
-
     var cleanHref = base + (remaining.length ? '?' + remaining.join('&') : '') + hash;
     return {
       cleanHref: cleanHref,
@@ -274,35 +233,21 @@
     };
   }
 
-  /**
-   * Find all unprocessed PDF links in the markdown section.
-   * Returns array of { element, href, resolvedUrl, filename, linkOpts }.
-   *
-   * Per-link options are encoded into the href as ?__pdfOpts=... by
-   * encodePdfOptsInMarkdown() (called in hook.beforeEach) and decoded here.
-   */
   function scanPdfLinks(cfg, basePath, currentRoute) {
     var links = document.querySelectorAll('.markdown-section a[href]');
     var results = [];
     for (var i = 0; i < links.length; i++) {
       var el = links[i];
-
       if (el.getAttribute('data-pdf-preview-processed')) continue;
       if (el.closest('code, pre')) continue;
-
       var href = el.getAttribute('href');
-
-      // Extract and strip __pdfOpts before URL safety / match checks
       var extracted = extractPdfOpts(href);
       var cleanHref = extracted.cleanHref;
-      var linkOpts  = extracted.linkOpts;
-
+      var linkOpts = extracted.linkOpts;
       if (!cfg.match.test(cleanHref)) continue;
       if (!isSafeUrl(cleanHref)) continue;
-
       var resolvedUrl = resolvePdfUrl(cleanHref, basePath, currentRoute);
       if (!isSafeUrl(resolvedUrl)) continue;
-
       results.push({
         element: el,
         href: cleanHref,
@@ -314,12 +259,512 @@
     return results;
   }
 
-  // ─── 5. UI Builders ──────────────────────────────────────────────────────────
+  // ─── PDF.js Loader (lazy, singleton) ─────────────────────────────────────────
+
+  var _pdfjsLoaded = false;
+  var _pdfjsLoading = false;
+  var _pdfjsQueue = [];
+
+  function loadPdfjs(callback) {
+    if (_pdfjsLoaded) { callback(null); return; }
+    _pdfjsQueue.push(callback);
+    if (_pdfjsLoading) return;
+    _pdfjsLoading = true;
+
+    // Use jsdelivr with @latest so it always resolves to the newest release.
+    // Fallback to cdnjs and unpkg if jsdelivr is blocked or slow.
+    var CDN_SOURCES = [
+      { script: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@latest/build/pdf.min.mjs',
+        worker: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@latest/build/pdf.worker.min.mjs' },
+      { script: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs',
+        worker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs' },
+      { script: 'https://unpkg.com/pdfjs-dist@latest/build/pdf.min.mjs',
+        worker: 'https://unpkg.com/pdfjs-dist@latest/build/pdf.worker.min.mjs' }
+    ];
+
+    function tryLoad(idx) {
+      if (idx >= CDN_SOURCES.length) {
+        var err = new Error('pdfjs load failed: all CDN sources exhausted');
+        _pdfjsQueue.forEach(function (cb) { cb(err); });
+        _pdfjsQueue = [];
+        _pdfjsLoading = false;
+        return;
+      }
+
+      var src = CDN_SOURCES[idx];
+      // Use a unique event name per CDN attempt to avoid stale listeners
+      var eventName = '__pdfjs_ready_' + idx + '_' + Date.now();
+      var loader = document.createElement('script');
+      loader.type = 'module';
+      loader.textContent =
+        'import * as pdfjsLib from "' + src.script + '";\n' +
+        'pdfjsLib.GlobalWorkerOptions.workerSrc = "' + src.worker + '";\n' +
+        'window.pdfjsLib = pdfjsLib;\n' +
+        'window.dispatchEvent(new Event("' + eventName + '"));';
+
+      var settled = false;
+
+      function onReady() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        window.removeEventListener(eventName, onReady);
+        if (window.pdfjsLib) {
+          _pdfjsLoaded = true;
+          _pdfjsQueue.forEach(function (cb) { cb(null); });
+          _pdfjsQueue = [];
+        } else {
+          console.warn('[pdf-preview] CDN ' + idx + ' loaded but pdfjsLib missing, trying next…');
+          tryLoad(idx + 1);
+        }
+      }
+
+      function onFail() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        window.removeEventListener(eventName, onReady);
+        console.warn('[pdf-preview] CDN ' + idx + ' failed (' + src.script + '), trying next…');
+        tryLoad(idx + 1);
+      }
+
+      // Timeout: if the module doesn't fire the ready event within 10s, try next
+      var timer = setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        window.removeEventListener(eventName, onReady);
+        if (!_pdfjsLoaded) {
+          console.warn('[pdf-preview] CDN ' + idx + ' timed out, trying next…');
+          tryLoad(idx + 1);
+        }
+      }, 10000);
+
+      window.addEventListener(eventName, onReady);
+      loader.onerror = onFail;
+
+      document.head.appendChild(loader);
+    }
+
+    tryLoad(0);
+  }
+
+  // ─── PDF Fetcher (with CORS proxy fallback chain) ────────────────────────────
+
+  var CORS_PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://cors-anywhere.herokuapp.com/' + u; },
+    function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  ];
 
   /**
-   * Build the shared inline header bar.
-   * Same visual structure as the modal header: spacer | filename link | expand btn.
+   * Validate that an ArrayBuffer starts with the PDF signature (%PDF).
    */
+  function isPdfBuffer(buf) {
+    if (!buf || buf.byteLength < 5) return false;
+    var h = new Uint8Array(buf, 0, 5);
+    return h[0] === 0x25 && h[1] === 0x50 && h[2] === 0x44 && h[3] === 0x46; // %PDF
+  }
+
+  /**
+   * Try fetching from a list of CORS proxies, starting at index `idx`.
+   * Rejects when all proxies are exhausted.
+   */
+  function tryProxies(url, idx) {
+    if (idx >= CORS_PROXIES.length) {
+      return Promise.reject(new Error('All CORS proxies failed'));
+    }
+    var proxyUrl = CORS_PROXIES[idx](url);
+    return fetch(proxyUrl).then(function (res) {
+      if (!res.ok) throw new Error('Proxy ' + idx + ' HTTP ' + res.status);
+      return res.arrayBuffer();
+    }).then(function (buf) {
+      if (!isPdfBuffer(buf)) throw new Error('Proxy ' + idx + ' returned non-PDF content');
+      return buf;
+    }).catch(function (err) {
+      if (idx < CORS_PROXIES.length - 1) {
+        console.debug('[pdf-preview] Proxy ' + idx + ' failed for', url, '–', err.message);
+      } else {
+        console.warn('[pdf-preview] All CORS proxies failed for', url);
+      }
+      return tryProxies(url, idx + 1);
+    });
+  }
+
+  /**
+   * Fetch a PDF as an ArrayBuffer.
+   *
+   * Strategy:
+   *  1. Try direct fetch (works for same-origin and CORS-enabled servers)
+   *  2. On CORS failure for cross-origin URLs, try a chain of public
+   *     CORS proxies that return raw bytes
+   *
+   * Requests are serialized (max 2 concurrent) to avoid rate-limiting on
+   * free CORS proxies.
+   *
+   * Returns a Promise that resolves to an ArrayBuffer.
+   */
+  var _fetchQueue = [];
+  var _fetchActive = 0;
+  var MAX_CONCURRENT_FETCHES = 2;
+
+  function _drainQueue() {
+    while (_fetchActive < MAX_CONCURRENT_FETCHES && _fetchQueue.length > 0) {
+      var next = _fetchQueue.shift();
+      _fetchActive++;
+      next();
+    }
+  }
+
+  function fetchPdfBytes(url) {
+    return new Promise(function (resolve, reject) {
+      _fetchQueue.push(function () {
+        _doFetch(url).then(resolve, reject).finally(function () {
+          _fetchActive--;
+          _drainQueue();
+        });
+      });
+      _drainQueue();
+    });
+  }
+
+  function _doFetch(url) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.arrayBuffer();
+    }).then(function (buf) {
+      if (!isPdfBuffer(buf)) throw new Error('Direct fetch returned non-PDF content');
+      return buf;
+    }).catch(function (directErr) {
+      // Only try proxies for cross-origin URLs
+      var isCrossOrigin = false;
+      try { isCrossOrigin = new URL(url).origin !== window.location.origin; } catch (e) { /* */ }
+      if (!isCrossOrigin) throw directErr;
+
+      console.debug('[pdf-preview] Cross-origin PDF, using CORS proxy for', url);
+      return tryProxies(url, 0);
+    });
+  }
+
+  // ─── PDF Document Cache ──────────────────────────────────────────────────────
+
+  var _pdfDocCache = {}; // url → PDFDocumentProxy
+  var _viewerPageState = {}; // url → { page, scale }
+
+  // ─── PDF.js Renderer ─────────────────────────────────────────────────────────
+
+  /**
+   * Core renderer: loads a PDF via PDF.js and renders it onto a canvas.
+   * Provides page nav, zoom, swipe gestures, keyboard nav, ResizeObserver.
+   * Sizes the container to exactly one page when cfg.height === 'auto'.
+   *
+   * If a PDFDocumentProxy for `url` is already cached, it is reused
+   * without re-fetching — so expanding inline→modal is instant.
+   */
+  function renderPdfViewer(container, url, cfg) {
+    loadPdfjs(function (err) {
+      if (err || !window.pdfjsLib) {
+        console.warn('[pdf-preview] PDF.js unavailable, falling back to iframe:', err && err.message);
+        renderIframeFallback(container, url, cfg);
+        return;
+      }
+
+      var pdfjs = window.pdfjsLib;
+      var state = { doc: null, page: 1, totalPages: 0, scale: 1.0, rendering: false };
+      var dpr = window.devicePixelRatio || 1;
+
+      // ── Build viewer DOM ──
+      var viewer = document.createElement('div');
+      viewer.className = 'pdfjs-viewer';
+
+      var controls = document.createElement('div');
+      controls.className = 'pdfjs-controls';
+      controls.setAttribute('role', 'toolbar');
+      controls.setAttribute('aria-label', 'PDF navigation');
+
+      var prevBtn = makeBtn('◀ Prev', 'Previous page');
+      var nextBtn = makeBtn('Next ▶', 'Next page');
+      var zoomIn = makeBtn('+ Zoom', 'Zoom in');
+      var zoomOut = makeBtn('− Zoom', 'Zoom out');
+      var pageInfo = document.createElement('span');
+      pageInfo.className = 'pdfjs-page-info';
+      pageInfo.setAttribute('aria-live', 'polite');
+
+      controls.appendChild(prevBtn);
+      controls.appendChild(pageInfo);
+      controls.appendChild(nextBtn);
+      controls.appendChild(zoomIn);
+      controls.appendChild(zoomOut);
+
+      var canvas = document.createElement('canvas');
+      canvas.className = 'pdfjs-canvas';
+      canvas.setAttribute('role', 'img');
+
+      var textLayerDiv = document.createElement('div');
+      textLayerDiv.className = 'pdfjs-text-layer';
+
+      var canvasBox = document.createElement('div');
+      canvasBox.style.position = 'relative';
+      canvasBox.style.display = 'inline-block';
+      canvasBox.appendChild(canvas);
+      canvasBox.appendChild(textLayerDiv);
+
+      var canvasWrap = document.createElement('div');
+      canvasWrap.className = 'pdfjs-canvas-wrap';
+
+      var tapPrev = document.createElement('button');
+      tapPrev.type = 'button';
+      tapPrev.className = 'pdfjs-tap-prev';
+      tapPrev.setAttribute('aria-label', 'Previous page');
+      var tapNext = document.createElement('button');
+      tapNext.type = 'button';
+      tapNext.className = 'pdfjs-tap-next';
+      tapNext.setAttribute('aria-label', 'Next page');
+
+      canvasWrap.appendChild(tapPrev);
+      canvasWrap.appendChild(canvasBox);
+      canvasWrap.appendChild(tapNext);
+
+      var swipeHint = document.createElement('div');
+      swipeHint.className = 'pdfjs-swipe-hint';
+      swipeHint.setAttribute('aria-hidden', 'true');
+      swipeHint.textContent = '← swipe or tap sides to navigate →';
+
+      viewer.appendChild(controls);
+      viewer.appendChild(canvasWrap);
+      viewer.appendChild(swipeHint);
+
+      container.innerHTML = '';
+      container.appendChild(viewer);
+
+      // ── Render one page ──
+      var _currentRenderTask = null;
+      var _textLayerGen = 0;
+
+      function renderPage(num) {
+        if (!state.doc) return;
+
+        // Cancel any in-flight render before starting a new one
+        if (_currentRenderTask) {
+          _currentRenderTask.cancel();
+          _currentRenderTask = null;
+        }
+
+        state.rendering = true;
+
+        state.doc.getPage(num).then(function (page) {
+          // Fit-to-width: scale so page width matches container width
+          var containerWidth = container.clientWidth || container.parentElement.clientWidth || window.innerWidth || 800;
+          var baseVp = page.getViewport({ scale: 1.0 });
+          var fitScale = containerWidth / baseVp.width;
+          var cssScale = fitScale * state.scale;
+          var viewport = page.getViewport({ scale: cssScale * dpr });
+
+          // Set canvas pixel dimensions (high-res for retina)
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          // Set CSS display dimensions (logical pixels)
+          canvas.style.width = Math.round(viewport.width / dpr) + 'px';
+          canvas.style.height = Math.round(viewport.height / dpr) + 'px';
+          canvas.setAttribute('aria-label', 'PDF page ' + num + ' of ' + state.totalPages);
+
+          var ctx = canvas.getContext('2d');
+          var task = page.render({ canvasContext: ctx, viewport: viewport });
+          _currentRenderTask = task;
+
+          // ── Text layer for selectable text ──
+          var myGen = ++_textLayerGen;
+          if (pdfjs.TextLayer) {
+            textLayerDiv.innerHTML = '';
+            var cssW = Math.round(viewport.width / dpr);
+            var cssH = Math.round(viewport.height / dpr);
+            textLayerDiv.style.width = cssW + 'px';
+            textLayerDiv.style.height = cssH + 'px';
+            var cssViewport = page.getViewport({ scale: cssScale });
+            page.getTextContent().then(function (textContent) {
+              if (myGen !== _textLayerGen) return; // stale
+              textLayerDiv.innerHTML = '';
+              var tl = new pdfjs.TextLayer({
+                textContentSource: textContent,
+                container: textLayerDiv,
+                viewport: cssViewport
+              });
+              return tl.render();
+            }).catch(function (e) {
+              console.debug('[pdf-preview] TextLayer:', e && e.message);
+            });
+          }
+
+          task.promise.then(function () {
+            _currentRenderTask = null;
+            state.rendering = false;
+          }).catch(function (err) {
+            _currentRenderTask = null;
+            state.rendering = false;
+            // RenderingCancelledException is expected when we cancel; ignore it
+            if (err && err.name !== 'RenderingCancelledException') {
+              console.warn('[pdf-preview] Render error:', err.message);
+            }
+          });
+
+          // Update controls
+          pageInfo.textContent = 'Page ' + num + ' / ' + state.totalPages;
+          prevBtn.disabled = num <= 1;
+          nextBtn.disabled = num >= state.totalPages;
+          tapPrev.style.display = num <= 1 ? 'none' : '';
+          tapNext.style.display = num >= state.totalPages ? 'none' : '';
+          swipeHint.style.display = state.totalPages <= 1 ? 'none' : '';
+
+          // Auto-height: size container to exactly one rendered page
+          if (cfg.height === 'auto') {
+            var cssPageH = Math.round(viewport.height / dpr);
+            var controlsH = controls.offsetHeight || 0;
+            var hintH = swipeHint.style.display === 'none' ? 0 : (swipeHint.offsetHeight || 24);
+            container.style.height = (cssPageH + controlsH + hintH) + 'px';
+          }
+        }).catch(function () {
+          state.rendering = false;
+        });
+      }
+
+      // ── ResizeObserver for responsive re-render ──
+      var _prevW = 0;
+      if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function (entries) {
+          if (!state.doc) return;
+          var w = Math.round(entries[0].contentRect.width);
+          if (w > 0 && w !== _prevW) {
+            _prevW = w;
+            renderPage(state.page);
+          }
+        }).observe(container);
+      }
+
+      // ── Navigation ──
+      function saveViewerState() { _viewerPageState[url] = { page: state.page, scale: state.scale }; }
+      function goPrev() { if (state.page > 1) { state.page--; saveViewerState(); renderPage(state.page); } }
+      function goNext() { if (state.page < state.totalPages) { state.page++; saveViewerState(); renderPage(state.page); } }
+      prevBtn.addEventListener('click', goPrev);
+      nextBtn.addEventListener('click', goNext);
+      tapPrev.addEventListener('click', goPrev);
+      tapNext.addEventListener('click', goNext);
+      zoomIn.addEventListener('click', function () {
+        state.scale = Math.min(state.scale + 0.25, 4.0);
+        saveViewerState(); renderPage(state.page);
+      });
+      zoomOut.addEventListener('click', function () {
+        state.scale = Math.max(state.scale - 0.25, 0.25);
+        saveViewerState(); renderPage(state.page);
+      });
+
+      // ── Swipe (mobile) ──
+      var _tx = 0, _ty = 0;
+      viewer.addEventListener('touchstart', function (e) {
+        _tx = e.changedTouches[0].clientX;
+        _ty = e.changedTouches[0].clientY;
+      }, { passive: true });
+      viewer.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - _tx;
+        var dy = e.changedTouches[0].clientY - _ty;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+          if (dx < 0) goNext(); else goPrev();
+        }
+      }, { passive: true });
+
+      // ── Keyboard ──
+      viewer.setAttribute('tabindex', '0');
+      viewer.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goPrev(); }
+      });
+
+      // ── Load the document (with cache + CORS proxy fallback) ──
+      function onDocReady(doc) {
+        _pdfDocCache[url] = doc;
+        state.doc = doc;
+        state.totalPages = doc.numPages;
+        var saved = _viewerPageState[url];
+        if (saved) {
+          state.page = Math.min(saved.page, doc.numPages) || 1;
+          state.scale = saved.scale || 1.0;
+        }
+        saveViewerState();
+        renderPage(state.page);
+      }
+
+      if (_pdfDocCache[url]) {
+        onDocReady(_pdfDocCache[url]);
+      } else {
+        fetchPdfBytes(url).then(function (data) {
+          return pdfjs.getDocument({ data: data }).promise;
+        }).then(onDocReady).catch(function (loadErr) {
+          console.warn('[pdf-preview] PDF.js load failed, falling back to iframe:', loadErr.message);
+          renderIframeFallback(container, url, cfg);
+        });
+      }
+    });
+  }
+
+  function makeBtn(text, label) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pdf-btn';
+    btn.textContent = text;
+    btn.setAttribute('aria-label', label);
+    return btn;
+  }
+
+  // ─── Loading / Fallback UI ────────────────────────────────────────────────
+
+  function showLoading(container) {
+    container.innerHTML =
+      '<div class="pdf-loading">' +
+        '<span class="pdf-loading-spinner"></span> Loading PDF…' +
+      '</div>';
+  }
+
+  /**
+   * Last-resort fallback: render the PDF in a native browser iframe.
+   * The browser's built-in PDF viewer handles this without CORS issues
+   * (iframe document loads are not subject to CORS). We can't control
+   * zoom/page-sizing, but at least the PDF is visible.
+   */
+  function renderIframeFallback(container, url, cfg) {
+    var safeUrl = sanitizeAttr(url);
+    var safeName = sanitizeAttr(filenameFromUrl(url));
+    // Append #view=FitH to hint the browser to fit-width
+    var iframeSrc = safeUrl.split('#')[0] + '#view=FitH';
+
+    var heightStyle = (cfg && cfg.height && cfg.height !== 'auto')
+      ? cfg.height
+      : '80vh';
+
+    container.innerHTML =
+      '<iframe style="display:block;width:100%;height:' + sanitizeAttr(heightStyle) + ';border:none"' +
+        ' src="' + iframeSrc + '"' +
+        ' title="PDF preview: ' + safeName + '"' +
+        ' aria-label="PDF preview: ' + safeName + '">' +
+      '</iframe>' +
+      '<div style="text-align:center;padding:4px;font-size:.75em;opacity:.5">' +
+        'Rendered with browser PDF viewer — ' +
+        '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a> | ' +
+        '<a href="' + safeUrl + '" download="' + safeName + '">Download</a>' +
+      '</div>';
+  }
+
+  function showFallback(container, url) {
+    var safeUrl = sanitizeAttr(url);
+    var safeName = sanitizeAttr(filenameFromUrl(url));
+    container.innerHTML =
+      '<div class="pdf-preview-fallback">' +
+        '<div style="margin-bottom:10px">📄 <strong>' + safeName + '</strong></div>' +
+        '<div style="margin-bottom:8px;font-size:.85em;opacity:.7">Could not render this PDF inline.</div>' +
+        '<a class="pdf-btn" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" style="margin:4px">Open PDF</a> ' +
+        '<a class="pdf-btn" href="' + safeUrl + '" download="' + safeName + '" style="margin:4px">Download</a>' +
+      '</div>';
+  }
+
+  // ─── Inline Header ──────────────────────────────────────────────────────────
+
   function buildInlineHeader(safeUrl, safeName) {
     return '<div class="pdf-preview-header">' +
       '<span class="pdf-preview-modal-spacer"></span>' +
@@ -332,60 +777,19 @@
     '</div>';
   }
 
-  /**
-   * Build an inline preview container (native iframe backend).
-   */
-  function buildInlineContainer(info, cfg) {
-    var safeUrl = sanitizeAttr(info.resolvedUrl);
-    var safeName = sanitizeAttr(info.filename);
+  // ─── Modal Trigger Button ────────────────────────────────────────────────────
 
-    var wrapper = document.createElement('div');
-    wrapper.className = 'pdf-preview-inline';
-    wrapper.setAttribute('role', 'region');
-    wrapper.setAttribute('aria-label', 'PDF Preview: ' + info.filename);
-
-    // 'auto' → use A4 portrait aspect-ratio so height tracks container width.
-    var frameAreaStyle = cfg.height === 'auto'
-      ? 'aspect-ratio:595/842'
-      : 'height:' + sanitizeAttr(cfg.height);
-
-    wrapper.innerHTML =
-      buildInlineHeader(safeUrl, safeName) +
-      '<div class="pdf-preview-frame-area" style="' + frameAreaStyle + '">' +
-        '<iframe class="pdf-preview-frame"' +
-          ' src="' + safeUrl + '"' +
-          ' title="PDF preview: ' + safeName + '"' +
-          ' aria-label="PDF preview: ' + safeName + '">' +
-        '</iframe>' +
-        '<div class="pdf-preview-fallback" aria-live="polite">' +
-          'Your browser cannot display this PDF. ' +
-          '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a> or ' +
-          '<a href="' + safeUrl + '" download="' + safeName + '">Download</a> it.' +
-        '</div>' +
-      '</div>';
-
-    return wrapper;
-  }
-
-  /**
-   * Build a modal trigger button.
-   */
-  function buildModalTrigger(info, cfg) {
-    var safeUrl = sanitizeAttr(info.resolvedUrl);
-    var safeName = sanitizeAttr(info.filename);
-
+  function buildModalTrigger(info) {
     var btn = document.createElement('button');
     btn.className = 'pdf-preview-modal-btn';
     btn.setAttribute('type', 'button');
     btn.setAttribute('aria-haspopup', 'dialog');
     btn.setAttribute('aria-label', 'Preview PDF: ' + info.filename);
-    btn.setAttribute('data-pdf-url', safeUrl);
-    btn.setAttribute('data-pdf-name', safeName);
     btn.textContent = '📄 Preview PDF';
     return btn;
   }
 
-  // ─── Modal DOM ────────────────────────────────────────────────────────────────
+  // ─── Modal ───────────────────────────────────────────────────────────────────
 
   var _modal = null;
   var _modalFocusTrigger = null;
@@ -406,48 +810,32 @@
         '<div class="pdf-preview-modal-header">' +
           '<span class="pdf-preview-modal-spacer"></span>' +
           '<span class="pdf-header-center">' +
-            '<a class="pdf-preview-modal-filename" id="pdf-preview-modal-title" href="#" target="_blank" rel="noopener noreferrer"></a>' +
+            '<a class="pdf-preview-modal-filename" id="pdf-modal-title" href="#" target="_blank" rel="noopener noreferrer"></a>' +
           '</span>' +
           '<span class="pdf-preview-modal-actions">' +
-            '<button class="pdf-modal-close-btn" id="pdf-modal-close-btn" type="button" aria-label="Close PDF viewer">&#x2715;</button>' +
+            '<button class="pdf-modal-close-btn" id="pdf-modal-close" type="button" aria-label="Close PDF viewer">&#x2715;</button>' +
           '</span>' +
         '</div>' +
-        '<div class="pdf-preview-modal-body">' +
-          '<iframe class="pdf-preview-frame" id="pdf-preview-modal-frame" title="PDF preview" aria-label="PDF preview"></iframe>' +
-          '<div class="pdf-preview-fallback" aria-live="polite" id="pdf-preview-modal-fallback">' +
-            'Your browser cannot display this PDF. ' +
-            '<a id="pdf-modal-fallback-open" href="#" target="_blank" rel="noopener noreferrer">Open</a> or ' +
-            '<a id="pdf-modal-fallback-dl" href="#">Download</a> it.' +
-          '</div>' +
-        '</div>' +
+        '<div class="pdf-preview-modal-body" id="pdf-modal-body"></div>' +
       '</div>';
 
     document.body.appendChild(overlay);
 
-    overlay.querySelector('#pdf-modal-close-btn').addEventListener('click', closeModal);
-
-    // Close on backdrop click
+    overlay.querySelector('#pdf-modal-close').addEventListener('click', closeModal);
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) closeModal();
     });
-
-    // ESC key (AR2)
     document.addEventListener('keydown', function (e) {
       if ((e.key === 'Escape' || e.key === 'Esc') && overlay.style.display !== 'none') {
         closeModal();
       }
     });
-
-    // Focus trap (AR4 / FR-M4)
     overlay.addEventListener('keydown', trapFocus);
 
     _modal = overlay;
     return overlay;
   }
 
-  /**
-   * Trap Tab/Shift+Tab focus within the modal.
-   */
   function trapFocus(e) {
     if (e.key !== 'Tab') return;
     var modal = document.querySelector('.pdf-preview-modal');
@@ -459,56 +847,51 @@
     var first = focusable[0];
     var last = focusable[focusable.length - 1];
     if (e.shiftKey) {
-      if (document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      }
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
     } else {
-      if (document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   }
 
   function openModal(info, cfg) {
     var overlay = getOrCreateModal();
-    var safeUrl = sanitizeAttr(info.resolvedUrl);
-    var safeName = sanitizeAttr(info.filename);
-
     overlay.setAttribute('aria-label', 'PDF Viewer: ' + info.filename);
     overlay.querySelector('.pdf-preview-modal').style.width = cfg.modalWidth;
     overlay.querySelector('.pdf-preview-modal').style.height = cfg.modalHeight;
 
-    var titleLink = overlay.querySelector('#pdf-preview-modal-title');
+    var titleLink = overlay.querySelector('#pdf-modal-title');
     titleLink.textContent = info.filename;
     titleLink.href = info.resolvedUrl;
     titleLink.setAttribute('aria-label', 'Open ' + info.filename + ' in new tab');
 
-    var frame = overlay.querySelector('#pdf-preview-modal-frame');
-    var fbOpen = overlay.querySelector('#pdf-modal-fallback-open');
-    var fbDl = overlay.querySelector('#pdf-modal-fallback-dl');
+    var body = overlay.querySelector('#pdf-modal-body');
+    body.innerHTML = '';
 
-    frame.src = info.resolvedUrl;
-    fbOpen.href = info.resolvedUrl;
-    fbDl.href = info.resolvedUrl;
-    fbDl.setAttribute('download', info.filename);
+    var frameArea = document.createElement('div');
+    frameArea.className = 'pdf-preview-frame-area';
+    frameArea.style.flex = '1';
+    frameArea.style.minHeight = '0';
+    body.appendChild(frameArea);
+
+    showLoading(frameArea);
+
+    // Modal always uses explicit height (fills modal body via flex)
+    var modalCfg = mergeConfig(cfg, { height: '100%' });
+
+    renderPdfViewer(frameArea, info.resolvedUrl, modalCfg);
 
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    // Update URL state if configured (4.2)
     if (cfg.routeParam) {
       try {
         var hash = window.location.hash || '#';
-        var nextHash = setHashParam(hash, cfg.routeParam, info.resolvedUrl);
-        window.history.pushState(null, '', nextHash);
+        window.history.pushState(null, '', setHashParam(hash, cfg.routeParam, info.resolvedUrl));
       } catch (e) { /* non-critical */ }
     }
 
-    // Focus the close button (AR4)
     setTimeout(function () {
-      overlay.querySelector('#pdf-modal-close-btn').focus();
+      overlay.querySelector('#pdf-modal-close').focus();
     }, 50);
   }
 
@@ -517,17 +900,15 @@
     _modal.style.display = 'none';
     document.body.style.overflow = '';
 
-    // Clear iframe src to stop loading
-    var frame = _modal.querySelector('#pdf-preview-modal-frame');
-    if (frame) frame.src = '';
+    // Clear modal body to stop any rendering
+    var body = _modal.querySelector('#pdf-modal-body');
+    if (body) body.innerHTML = '';
 
-    // Restore focus to trigger element (AR4 / FR-M5)
     if (_modalFocusTrigger && _modalFocusTrigger.focus) {
       _modalFocusTrigger.focus();
     }
     _modalFocusTrigger = null;
 
-    // Remove URL state param if configured
     try {
       if (window.location.hash && _routeParam) {
         window.history.pushState(null, '', removeHashParam(window.location.hash, _routeParam));
@@ -535,14 +916,13 @@
     } catch (e) { /* non-critical */ }
   }
 
-  // ─── Hash param helpers ─────────────────────────────────────────────────────
+  // ─── Hash helpers ───────────────────────────────────────────────────────────
 
   function removeHashParam(hash, key) {
     var raw = hash.charAt(0) === '#' ? hash.slice(1) : hash;
     var parts = raw.split('?');
     var base = parts[0] || '';
-    var search = parts[1] || '';
-    var params = new URLSearchParams(search);
+    var params = new URLSearchParams(parts[1] || '');
     params.delete(key);
     var q = params.toString();
     return '#' + (q ? base + '?' + q : base);
@@ -552,321 +932,28 @@
     var raw = hash.charAt(0) === '#' ? hash.slice(1) : hash;
     var parts = raw.split('?');
     var base = parts[0] || '';
-    var search = parts[1] || '';
-    var params = new URLSearchParams(search);
+    var params = new URLSearchParams(parts[1] || '');
     params.set(key, value);
     var q = params.toString();
     return '#' + (q ? base + '?' + q : base);
   }
 
-  // ─── 3.2 PDF.js Backend (lazy) ───────────────────────────────────────────────
-
-  var _pdfjsLoaded = false;
-  var _pdfjsLoading = false;
-  var _pdfjsQueue = [];
-
-  function loadPdfjsViewer(callback) {
-    if (_pdfjsLoaded) {
-      callback(null);
-      return;
-    }
-    _pdfjsQueue.push(callback);
-    if (_pdfjsLoading) return;
-    _pdfjsLoading = true;
-
-    var cdnBase = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149';
-
-    var script = document.createElement('script');
-    script.src = cdnBase + '/pdf.min.js';
-    script.onload = function () {
-      if (window.pdfjsLib) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = cdnBase + '/pdf.worker.min.js';
-        _pdfjsLoaded = true;
-        _pdfjsQueue.forEach(function (cb) { cb(null); });
-        _pdfjsQueue = [];
-      } else {
-        var err = new Error('PDF.js failed to initialise');
-        _pdfjsQueue.forEach(function (cb) { cb(err); });
-        _pdfjsQueue = [];
-      }
-    };
-    script.onerror = function () {
-      var err = new Error('PDF.js script failed to load');
-      _pdfjsQueue.forEach(function (cb) { cb(err); });
-      _pdfjsQueue = [];
-      _pdfjsLoading = false;
-    };
-    document.head.appendChild(script);
-  }
-
-  /**
-   * Render a PDF inside a canvas-based viewer using PDF.js.
-   * Fallback to native backend on any error (FR-E3).
-   */
-  function renderPdfJs(container, url, cfg) {
-    loadPdfjsViewer(function (err) {
-      if (err || !window.pdfjsLib) {
-        // FR-E3: on touch devices the native iframe shows only page 1 (iOS Safari).
-        // Show a useful open/download prompt instead.
-        if (isMobileDevice()) {
-          renderMobileFallback(container, url);
-        } else {
-          renderNativeInContainer(container, url, cfg);
-        }
-        return;
-      }
-
-      var pdfjs = window.pdfjsLib;
-      var state = { doc: null, page: 1, totalPages: 0, scale: 1.0 };
-
-      var viewer = document.createElement('div');
-      viewer.className = 'pdfjs-viewer';
-
-      var controls = document.createElement('div');
-      controls.className = 'pdfjs-controls';
-      controls.setAttribute('role', 'toolbar');
-      controls.setAttribute('aria-label', 'PDF navigation controls');
-
-      var prevBtn = document.createElement('button');
-      prevBtn.type = 'button';
-      prevBtn.className = 'pdf-btn';
-      prevBtn.textContent = '◀ Prev';
-      prevBtn.setAttribute('aria-label', 'Previous page');
-
-      var nextBtn = document.createElement('button');
-      nextBtn.type = 'button';
-      nextBtn.className = 'pdf-btn';
-      nextBtn.textContent = 'Next ▶';
-      nextBtn.setAttribute('aria-label', 'Next page');
-
-      var pageInfo = document.createElement('span');
-      pageInfo.className = 'pdfjs-page-info';
-      pageInfo.setAttribute('aria-live', 'polite');
-      pageInfo.textContent = 'Page 1';
-
-      var zoomIn = document.createElement('button');
-      zoomIn.type = 'button';
-      zoomIn.className = 'pdf-btn';
-      zoomIn.textContent = '+ Zoom In';
-      zoomIn.setAttribute('aria-label', 'Zoom in');
-
-      var zoomOut = document.createElement('button');
-      zoomOut.type = 'button';
-      zoomOut.className = 'pdf-btn';
-      zoomOut.textContent = '- Zoom Out';
-      zoomOut.setAttribute('aria-label', 'Zoom out');
-
-      controls.appendChild(prevBtn);
-      controls.appendChild(pageInfo);
-      controls.appendChild(nextBtn);
-      controls.appendChild(zoomIn);
-      controls.appendChild(zoomOut);
-
-      var canvas = document.createElement('canvas');
-      canvas.className = 'pdfjs-canvas';
-      canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', 'PDF page');
-
-      // Wrap canvas with tap-zone overlay buttons for reliable touch navigation
-      var canvasWrap = document.createElement('div');
-      canvasWrap.className = 'pdfjs-canvas-wrap';
-
-      var tapPrev = document.createElement('button');
-      tapPrev.type = 'button';
-      tapPrev.className = 'pdfjs-tap-prev';
-      tapPrev.setAttribute('aria-label', 'Previous page');
-
-      var tapNext = document.createElement('button');
-      tapNext.type = 'button';
-      tapNext.className = 'pdfjs-tap-next';
-      tapNext.setAttribute('aria-label', 'Next page');
-
-      canvasWrap.appendChild(tapPrev);
-      canvasWrap.appendChild(canvas);
-      canvasWrap.appendChild(tapNext);
-
-      var swipeHint = document.createElement('div');
-      swipeHint.className = 'pdfjs-swipe-hint';
-      swipeHint.setAttribute('aria-hidden', 'true');
-      swipeHint.textContent = '← swipe or tap sides to navigate →';
-
-      viewer.appendChild(controls);
-      viewer.appendChild(canvasWrap);
-      viewer.appendChild(swipeHint);
-
-      // Clear container and insert viewer
-      container.innerHTML = '';
-      container.appendChild(viewer);
-
-      function renderPage(num) {
-        state.doc.getPage(num).then(function (page) {
-          // Compute a fit-to-width base scale so the page fills the container
-          // on any screen size. state.scale (default 1.0) is then a zoom
-          // multiplier relative to fit-width (1.0 = fit, 1.25 = 25% larger…).
-          var containerWidth = container.clientWidth || window.innerWidth || 800;
-          var baseViewport = page.getViewport({ scale: 1.0 });
-          var fitScale = containerWidth / baseViewport.width;
-          var viewport = page.getViewport({ scale: fitScale * state.scale });
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          canvas.setAttribute('aria-label', 'PDF page ' + num + ' of ' + state.totalPages);
-          var ctx = canvas.getContext('2d');
-          page.render({ canvasContext: ctx, viewport: viewport });
-          pageInfo.textContent = 'Page ' + num + ' / ' + state.totalPages;
-          prevBtn.disabled = num <= 1;
-          nextBtn.disabled = num >= state.totalPages;
-          // Keep tap-zone visibility in sync with disabled state
-          tapPrev.style.display = num <= 1 ? 'none' : '';
-          tapNext.style.display = num >= state.totalPages ? 'none' : '';
-          // Hide swipe hint for single-page documents
-          swipeHint.style.display = state.totalPages <= 1 ? 'none' : '';
-          // Auto-height: set container to exactly one rendered page.
-          if (cfg.height === 'auto') {
-            var controlsH = controls.offsetHeight || 0;
-            var hintH = swipeHint.style.display === 'none' ? 0 : (swipeHint.offsetHeight || 24);
-            container.style.height = (viewport.height + controlsH + hintH) + 'px';
-          }
-        });
-      }
-
-      // Re-render when the container width changes (orientation, sidebar toggle).
-      var _prevContainerWidth = 0;
-      if (typeof ResizeObserver !== 'undefined') {
-        var _ro = new ResizeObserver(function (entries) {
-          // Guard: doc not yet loaded (PDF.js still fetching).
-          if (!state.doc) return;
-          var w = Math.round(entries[0].contentRect.width);
-          if (w > 0 && w !== _prevContainerWidth) {
-            _prevContainerWidth = w;
-            renderPage(state.page);
-          }
-        });
-        _ro.observe(container);
-      }
-
-      prevBtn.addEventListener('click', function () {
-        if (state.page > 1) { state.page--; renderPage(state.page); }
-      });
-      nextBtn.addEventListener('click', function () {
-        if (state.page < state.totalPages) { state.page++; renderPage(state.page); }
-      });
-      tapPrev.addEventListener('click', function () {
-        if (state.page > 1) { state.page--; renderPage(state.page); }
-      });
-      tapNext.addEventListener('click', function () {
-        if (state.page < state.totalPages) { state.page++; renderPage(state.page); }
-      });
-      zoomIn.addEventListener('click', function () {
-        state.scale = Math.min(state.scale + 0.25, 4.0);
-        renderPage(state.page);
-      });
-      zoomOut.addEventListener('click', function () {
-        state.scale = Math.max(state.scale - 0.25, 0.25);
-        renderPage(state.page);
-      });
-
-      // ── Swipe gestures (mobile / touch) ──────────────────────────────────
-      var _touchStartX = 0;
-      var _touchStartY = 0;
-      viewer.addEventListener('touchstart', function (e) {
-        _touchStartX = e.changedTouches[0].clientX;
-        _touchStartY = e.changedTouches[0].clientY;
-      }, { passive: true });
-      viewer.addEventListener('touchend', function (e) {
-        var dx = e.changedTouches[0].clientX - _touchStartX;
-        var dy = e.changedTouches[0].clientY - _touchStartY;
-        // Only treat as a horizontal swipe when wider than the vertical movement
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-          if (dx < 0 && state.page < state.totalPages) {
-            state.page++; renderPage(state.page);
-          } else if (dx > 0 && state.page > 1) {
-            state.page--; renderPage(state.page);
-          }
-        }
-      }, { passive: true });
-
-      // ── Keyboard arrow navigation ─────────────────────────────────────────
-      viewer.setAttribute('tabindex', '0');
-      viewer.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-          e.preventDefault();
-          if (state.page < state.totalPages) { state.page++; renderPage(state.page); }
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-          e.preventDefault();
-          if (state.page > 1) { state.page--; renderPage(state.page); }
-        }
-      });
-
-      pdfjs.getDocument(url).promise.then(function (doc) {
-        state.doc = doc;
-        state.totalPages = doc.numPages;
-        renderPage(1);
-      }).catch(function () {
-        // FR-E3: on touch devices the native iframe only shows page 1 (iOS Safari).
-        if (isMobileDevice()) {
-          renderMobileFallback(container, url);
-        } else {
-          renderNativeInContainer(container, url, cfg);
-        }
-      });
-    });
-  }
-
-  function renderNativeInContainer(container, url, cfg) {
-    var safeUrl = sanitizeAttr(url);
-    var safeName = sanitizeAttr(filenameFromUrl(url));
-    container.innerHTML =
-      '<iframe class="pdf-preview-frame"' +
-        ' src="' + safeUrl + '"' +
-        ' title="PDF preview: ' + safeName + '"' +
-        ' aria-label="PDF preview: ' + safeName + '">' +
-      '</iframe>' +
-      '<div class="pdf-preview-fallback" aria-live="polite">' +
-        'Your browser cannot display this PDF. ' +
-        '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer">Open</a> or ' +
-        '<a href="' + safeUrl + '" download="' + safeName + '">Download</a> it.' +
-      '</div>';
-  }
-
-  /**
-   * Mobile-specific fallback shown when PDF.js cannot load the document.
-   * iOS Safari iframes only display the first page, so we show open/download
-   * links instead of a broken native embed.
-   */
-  function renderMobileFallback(container, url) {
-    var safeUrl = sanitizeAttr(url);
-    var safeName = sanitizeAttr(filenameFromUrl(url));
-    container.innerHTML =
-      '<div class="pdf-preview-fallback" style="display:block;padding:16px;text-align:center;font-size:1em">' +
-        '<div style="margin-bottom:10px">📄 <strong>' + safeName + '</strong></div>' +
-        '<a class="pdf-btn" href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" style="margin:4px">Open PDF</a> ' +
-        '<a class="pdf-btn" href="' + safeUrl + '" download="' + safeName + '" style="margin:4px">Download</a>' +
-      '</div>';
-  }
-
-  // ─── 2.3 Rendering Controller ────────────────────────────────────────────────
+  // ─── Rendering Controller ────────────────────────────────────────────────────
 
   function processLink(info, cfg) {
     var el = info.element;
     el.setAttribute('data-pdf-preview-processed', '1');
 
-    // Merge per-link options (from ':pdf-preview ...' syntax) over global config
+    // Merge per-link options over global config
     if (info.linkOpts && Object.keys(info.linkOpts).length > 0) {
       cfg = mergeConfig(cfg, info.linkOpts);
     }
 
     switch (cfg.mode) {
-      case 'inline':
-        renderInline(info, cfg);
-        break;
-      case 'modal':
-        renderModal(info, cfg);
-        break;
-      case 'both':
-        renderBoth(info, cfg);
-        break;
-      default:
-        renderModal(info, cfg);
+      case 'inline':  renderInline(info, cfg); break;
+      case 'modal':   renderModal(info, cfg); break;
+      case 'both':    renderBoth(info, cfg); break;
+      default:        renderInline(info, cfg);
     }
   }
 
@@ -883,12 +970,10 @@
 
     var frameArea = document.createElement('div');
     frameArea.className = 'pdf-preview-frame-area';
+    // Set a comfortable placeholder height while loading.
+    // PDF.js will set exact page dimensions after first render.
     if (cfg.height === 'auto') {
-      if (cfg.backend !== 'pdfjs') {
-        // Native: A4 portrait aspect-ratio — height auto-adapts to container width.
-        frameArea.style.aspectRatio = '595 / 842';
-      }
-      // pdfjs: height is set to exact page px after first render (see renderPdfJs).
+      frameArea.style.minHeight = '200px';
     } else {
       frameArea.style.height = cfg.height;
     }
@@ -896,13 +981,11 @@
 
     el.parentNode.replaceChild(container, el);
 
-    if (cfg.backend === 'pdfjs') {
-      renderPdfJs(frameArea, info.resolvedUrl, cfg);
-    } else {
-      renderNativeInContainer(frameArea, info.resolvedUrl, cfg);
-    }
+    showLoading(frameArea);
 
-    // Wire expand button → open same PDF in modal
+    renderPdfViewer(frameArea, info.resolvedUrl, cfg);
+
+    // Wire expand button → modal
     var expandBtn = container.querySelector('.pdf-inline-expand-btn');
     if (expandBtn) {
       expandBtn.addEventListener('click', function () {
@@ -914,14 +997,11 @@
 
   function renderModal(info, cfg) {
     var el = info.element;
-    var btn = buildModalTrigger(info, cfg);
-
+    var btn = buildModalTrigger(info);
     btn.addEventListener('click', function () {
       _modalFocusTrigger = btn;
       openModal(info, cfg);
     });
-
-    // Insert button after the original link
     if (el.parentNode) {
       el.parentNode.insertBefore(btn, el.nextSibling);
     }
@@ -929,7 +1009,7 @@
 
   function renderBoth(info, cfg) {
     var el = info.element;
-    var btn = buildModalTrigger(info, cfg);
+    var btn = buildModalTrigger(info);
     btn.addEventListener('click', function () {
       _modalFocusTrigger = btn;
       openModal(info, cfg);
@@ -939,38 +1019,13 @@
     }
   }
 
-  // ─── Route change / cleanup ──────────────────────────────────────────────────
-
-  function onRouteChange() {
-    closeModal();
-  }
-
-  // ─── Plugin Entry Point ──────────────────────────────────────────────────────
-
-  /**
-   * Return true when the device is likely a narrow or touch-primary screen.
-   * Uses matchMedia when available, falls back to innerWidth + touch points.
-   */
-  function isMobileDevice() {
-    if (window.matchMedia) {
-      return window.matchMedia('(max-width:600px),(pointer:coarse)').matches;
-    }
-    return (window.innerWidth <= 600) ||
-           (navigator.maxTouchPoints > 0);
-  }
+  // ─── Plugin Entry ────────────────────────────────────────────────────────────
 
   function install(hook, vm) {
     var cfg = mergeConfig(DEFAULT_CONFIG, (window.$docsify || {}).pdfPreview);
-
     _routeParam = cfg.routeParam || null;
 
     if (!cfg.enabled) return;
-
-    // Override backend to pdfjs on mobile (unless user set mobilePdfjs: false).
-    // Native iframes cannot be controlled for zoom/fit on mobile browsers.
-    if (cfg.mobilePdfjs && cfg.backend === 'native' && isMobileDevice()) {
-      cfg = mergeConfig(cfg, { backend: 'pdfjs' });
-    }
 
     injectStyles();
 
@@ -986,24 +1041,20 @@
     hook.doneEach(processPdfLinks);
     hook.mounted(processPdfLinks);
 
-    // Handle URL state back-button (4.2)
     if (cfg.routeParam) {
       window.addEventListener('popstate', function () {
         var hash = window.location.hash;
-        if (hash.indexOf(cfg.routeParam + '=') === -1) {
-          closeModal();
-        }
+        if (hash.indexOf(cfg.routeParam + '=') === -1) closeModal();
       });
     }
 
-    // Close modal on route change + encode per-link :pdf-preview opts into URLs
     hook.beforeEach(function (content, next) {
-      onRouteChange();
+      closeModal();
       next(encodePdfOptsInMarkdown(content));
     });
   }
 
-  // Register plugin with Docsify
+  // Register with Docsify
   if (window.$docsify) {
     window.$docsify.plugins = (window.$docsify.plugins || []).concat(install);
   } else {
