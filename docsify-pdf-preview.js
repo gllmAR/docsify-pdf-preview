@@ -14,7 +14,7 @@
     height: 'auto',          // 'auto' = fit one full page; or any CSS length
     modalWidth: '96vw',
     modalHeight: '97vh',
-    pdfjsCrossOrigin: false, // false = use native/ios fallback for cross-origin PDFs
+    pdfjsCrossOrigin: false, // false = use card/ios fallback for cross-origin PDFs
     routeParam: null,        // e.g. "pdf" – enables URL state
     match: /\.pdf(\?.*)?$/i
   };
@@ -178,6 +178,10 @@
   function shouldUsePdfjs(url, cfg) {
     if (!isCrossOriginUrl(url)) return true;
     return !!(cfg && cfg.pdfjsCrossOrigin);
+  }
+
+  function shouldUseIframeFallback(url) {
+    return !isCrossOriginUrl(url);
   }
 
   function parsePdfLinkOptions(title) {
@@ -488,14 +492,16 @@
    */
   function renderPdfViewer(container, url, cfg) {
     if (!shouldUsePdfjs(url, cfg)) {
-      renderIframeFallback(container, url, cfg);
+      if (shouldUseIframeFallback(url)) renderIframeFallback(container, url, cfg);
+      else renderMobileCard(container, url, cfg);
       return;
     }
 
     loadPdfjs(function (err) {
       if (err || !window.pdfjsLib) {
         console.warn('[pdf-preview] PDF.js unavailable, falling back to iframe:', err && err.message);
-        renderIframeFallback(container, url, cfg);
+        if (shouldUseIframeFallback(url)) renderIframeFallback(container, url, cfg);
+        else renderMobileCard(container, url, cfg);
         return;
       }
 
@@ -728,8 +734,9 @@
         fetchPdfBytes(url).then(function (data) {
           return pdfjs.getDocument({ data: data }).promise;
         }).then(onDocReady).catch(function (loadErr) {
-          console.warn('[pdf-preview] PDF.js load failed, falling back to iframe:', loadErr.message);
-          renderIframeFallback(container, url, cfg);
+          console.warn('[pdf-preview] PDF.js load failed, falling back to alternate preview:', loadErr.message);
+          if (shouldUseIframeFallback(url)) renderIframeFallback(container, url, cfg);
+          else renderMobileCard(container, url, cfg);
         });
       }
     });
@@ -849,11 +856,12 @@
 
   /**
    * Last-resort fallback: render the PDF in a native browser iframe.
-   * On iOS / iPadOS, iframes cannot render PDFs — show a mobile card instead.
+   * Restricted to same-origin PDFs. Cross-origin fallbacks use the open-card UI
+   * to avoid CSP frame-ancestor failures and insecure iframe warnings.
    */
   function renderIframeFallback(container, url, cfg) {
-    // iOS cannot render PDFs in iframes; use mobile card
-    if (isIOS()) {
+    // iOS and cross-origin URLs should not use iframe fallback.
+    if (isIOS() || !shouldUseIframeFallback(url)) {
       renderMobileCard(container, url, cfg);
       return;
     }

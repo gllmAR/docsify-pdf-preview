@@ -62,7 +62,7 @@ Global config is `modal`, this link overrides to inline with default height.
 
 ### 2.1 — Cross-origin PDF with default production-safe behavior
 
-By default, cross-origin PDFs use native rendering to avoid browser CORS errors and flaky public proxy behavior.
+By default, cross-origin PDFs use the open-card fallback to avoid browser CORS errors, frame embedding failures, and flaky public proxy behavior.
 
 [Sample PDF — default cross-origin](https://sample-files.com/downloads/documents/pdf/sample-5-page-pdf-a4-size.pdf ':pdf-preview mode=inline height=70vh')
 

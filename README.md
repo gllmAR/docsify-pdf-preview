@@ -44,7 +44,7 @@ Add a `pdfPreview` block to your `window.$docsify` config:
       height: 'auto',         // Inline preview height ('auto' = fit one full page, or any CSS length e.g. '75vh')
       modalWidth: '96vw',     // Modal width
       modalHeight: '97vh',    // Modal height
-      pdfjsCrossOrigin: false,// false = use native/ios fallback for cross-origin PDFs
+      pdfjsCrossOrigin: false,// false = use card/ios fallback for cross-origin PDFs
       routeParam: null,       // URL param for modal state, e.g. "pdf"
       match: /\.pdf(\?.*)?$/i // Regex to match PDF links
     }
@@ -84,9 +84,9 @@ The plugin uses [PDF.js](https://mozilla.github.io/pdf.js/) for same-origin PDFs
 - Zoom controls (+ / −)
 - Page number indicator
 
-If PDF.js fails to load, it falls back to the browser's native PDF rendering.
+If PDF.js fails to load, it falls back to an alternate preview path.
 
-For cross-origin PDFs, the default is `pdfjsCrossOrigin: false`, which avoids browser CORS errors and unreliable public proxy behavior in production by using native rendering instead. Set `pdfjsCrossOrigin: true` only if the remote PDF is CORS-enabled or you control a reliable proxy.
+For cross-origin PDFs, the default is `pdfjsCrossOrigin: false`, which avoids browser CORS errors, `frame-ancestors` violations, and insecure iframe warnings in production by showing an open-in-new-tab preview card instead of embedding the remote PDF. Set `pdfjsCrossOrigin: true` only if the remote PDF is CORS-enabled or you control a reliable proxy.
 
 ---
 
