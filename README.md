@@ -5,10 +5,10 @@ A [Docsify](https://docsify.js.org) plugin that enables inline and modal preview
 ## Features
 
 - 🔍 **Auto-detects** PDF links in rendered Markdown content
-- 📄 **Inline mode** – replaces the link with an embedded iframe viewer
+- 📄 **Inline mode** – replaces the link with an inline preview container
 - 🪟 **Modal mode** – opens a full-screen overlay on click (default)
 - 🔀 **Both mode** – keeps the original link and adds a preview button
-- 📦 **Optional PDF.js backend** – lazy-loaded for page navigation and zoom controls
+- 📦 **PDF.js rendering** – lazy-loaded for page navigation and zoom controls when appropriate
 - ♿ **Accessible** – ARIA roles, focus trap, ESC key, keyboard navigation
 - 🔒 **Secure** – URL sanitization, no `eval`, no inline scripts
 - ⚡ **Performant** – no preloading, no global event listener leaks
@@ -41,11 +41,10 @@ Add a `pdfPreview` block to your `window.$docsify` config:
     pdfPreview: {
       enabled: true,          // Enable/disable the plugin
       mode: 'inline',         // "inline" | "modal" | "both"
-      backend: 'native',      // "native" (iframe) | "pdfjs"
-      mobilePdfjs: true,      // Auto-switch to pdfjs on narrow/touch screens
       height: 'auto',         // Inline preview height ('auto' = fit one full page, or any CSS length e.g. '75vh')
       modalWidth: '96vw',     // Modal width
       modalHeight: '97vh',    // Modal height
+      pdfjsCrossOrigin: false,// false = use native/ios fallback for cross-origin PDFs
       routeParam: null,       // URL param for modal state, e.g. "pdf"
       match: /\.pdf(\?.*)?$/i // Regex to match PDF links
     }
@@ -77,21 +76,17 @@ The original link is preserved and a preview button is added beside it.
 
 ---
 
-## Backends
+## Rendering
 
-### `backend: "native"` (default)
-
-Uses a plain `<iframe>` to embed the PDF. A fallback message with Open/Download links is displayed if the browser cannot render it.
-
-### `backend: "pdfjs"`
-
-Loads [PDF.js](https://mozilla.github.io/pdf.js/) lazily (only when a preview is first requested). Provides:
+The plugin uses [PDF.js](https://mozilla.github.io/pdf.js/) for same-origin PDFs and falls back automatically when that is a better fit. PDF.js provides:
 
 - Page navigation (Prev / Next)
 - Zoom controls (+ / −)
 - Page number indicator
 
-If PDF.js fails to load, it automatically falls back to the native backend.
+If PDF.js fails to load, it falls back to the browser's native PDF rendering.
+
+For cross-origin PDFs, the default is `pdfjsCrossOrigin: false`, which avoids browser CORS errors and unreliable public proxy behavior in production by using native rendering instead. Set `pdfjsCrossOrigin: true` only if the remote PDF is CORS-enabled or you control a reliable proxy.
 
 ---
 
@@ -155,10 +150,10 @@ The token is stripped before rendering so it never appears as a browser tooltip.
 | Key | Values | Default |
 |-----|--------|---------|
 | `mode` | `inline` \| `modal` \| `both` | global config |
-| `backend` | `native` \| `pdfjs` | global config |
 | `height` | any CSS length, `auto` | `auto` |
 | `modalWidth` | any CSS length | `90vw` |
 | `modalHeight` | any CSS length | `90vh` |
+| `pdfjsCrossOrigin` | `true` \| `false` | `false` |
 
 ### Examples
 
@@ -166,14 +161,11 @@ The token is stripped before rendering so it never appears as a browser tooltip.
 <!-- Force inline with a specific height -->
 [Report](report.pdf ':pdf-preview mode=inline height=60vh')
 
-<!-- Use PDF.js backend with page navigation -->
-[Slides](slides.pdf ':pdf-preview mode=inline backend=pdfjs height=80vh')
-
 <!-- Narrow modal -->
 [Contract](contract.pdf ':pdf-preview mode=modal modalWidth=70vw modalHeight=85vh')
 
-<!-- Combine: both mode + pdfjs -->
-[Manual](manual.pdf ':pdf-preview mode=both backend=pdfjs')
+<!-- Opt in to PDF.js for a CORS-enabled cross-origin PDF -->
+[Manual](https://example.com/manual.pdf ':pdf-preview mode=both pdfjsCrossOrigin=true')
 
 <!-- Quoted values also work -->
 [Doc](doc.pdf ':pdf-preview mode="inline" height="50vh"')

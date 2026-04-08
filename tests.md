@@ -58,45 +58,41 @@ Global config is `modal`, this link overrides to inline with default height.
 
 ---
 
-## 2 · Backend overrides
+## 2 · Cross-origin behavior
 
-### 2.1 — Force `pdfjs` backend in inline mode
+### 2.1 — Cross-origin PDF with default production-safe behavior
 
-PDF.js is lazy-loaded. Provides page-navigation and zoom controls.
+By default, cross-origin PDFs use native rendering to avoid browser CORS errors and flaky public proxy behavior.
 
-[Sample PDF — pdfjs inline](https://sample-files.com/downloads/documents/pdf/sample-5-page-pdf-a4-size.pdf ':pdf-preview mode=inline backend=pdfjs height=70vh')
-
----
-
-### 2.2 — Force `pdfjs` backend in modal mode
-
-[Sample PDF — pdfjs modal](https://sample-files.com/downloads/documents/pdf/sample-5-page-pdf-a4-size.pdf ':pdf-preview mode=modal backend=pdfjs')
+[Sample PDF — default cross-origin](https://sample-files.com/downloads/documents/pdf/sample-5-page-pdf-a4-size.pdf ':pdf-preview mode=inline height=70vh')
 
 ---
 
-### 2.3 — Force `native` backend explicitly
+### 2.2 — Opt in to PDF.js for cross-origin PDFs
 
-[Sample PDF — native inline](https://sample-files.com/downloads/documents/pdf/basic-text.pdf ':pdf-preview mode=inline backend=native height=50vh')
+Use this only when the remote server sends CORS headers or you control a reliable proxy.
+
+[Sample PDF — cross-origin PDF.js opt-in](https://sample-files.com/downloads/documents/pdf/sample-5-page-pdf-a4-size.pdf ':pdf-preview mode=modal pdfjsCrossOrigin=true')
 
 ---
 
 ## 3 · Combined overrides
 
-### 3.1 — Inline + pdfjs + custom height
+### 3.1 — Inline + custom height
 
-[10-page doc — pdfjs 60vh](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=inline backend=pdfjs height=60vh')
-
----
-
-### 3.2 — Modal + pdfjs + custom size
-
-[10-page doc — pdfjs modal 80vw](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=modal backend=pdfjs modalWidth=80vw modalHeight=80vh')
+[10-page doc — 60vh](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=inline height=60vh')
 
 ---
 
-### 3.3 — Both + pdfjs
+### 3.2 — Modal + custom size
 
-[10-page doc — both + pdfjs](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=both backend=pdfjs')
+[10-page doc — modal 80vw](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=modal modalWidth=80vw modalHeight=80vh')
+
+---
+
+### 3.3 — Both + cross-origin PDF.js opt-in
+
+[10-page doc — both + pdfjsCrossOrigin](https://sample-files.com/downloads/documents/pdf/sample-10-page-pdf-a4-size.pdf ':pdf-preview mode=both pdfjsCrossOrigin=true')
 
 ---
 
@@ -112,7 +108,7 @@ Falls back to global config entirely.
 
 ### 4.2 — Unknown keys are silently ignored
 
-Only whitelisted keys (`mode`, `backend`, `height`, `modalWidth`, `modalHeight`) are applied.
+Only whitelisted keys (`mode`, `height`, `modalWidth`, `modalHeight`, `pdfjsCrossOrigin`) are applied.
 
 [Sample PDF — unknown key](https://sample-files.com/downloads/documents/pdf/basic-text.pdf ':pdf-preview mode=inline color=red foo=bar')
 
@@ -138,18 +134,18 @@ Only whitelisted keys (`mode`, `backend`, `height`, `modalWidth`, `modalHeight`)
 
 ## 5 · Real-world document types
 
-### 5.1 — Image-heavy PDF, inline pdfjs
+### 5.1 — Image-heavy PDF, inline
 
-[Image doc — pdfjs inline](https://sample-files.com/downloads/documents/pdf/image-doc.pdf ':pdf-preview mode=inline backend=pdfjs height=75vh')
-
----
-
-### 5.2 — Legal-size, modal native
-
-[Legal size — modal native](https://sample-files.com/downloads/documents/pdf/sample-pdf-legal-size.pdf ':pdf-preview mode=modal backend=native modalWidth=70vw modalHeight=90vh')
+[Image doc — inline](https://sample-files.com/downloads/documents/pdf/image-doc.pdf ':pdf-preview mode=inline height=75vh')
 
 ---
 
-### 5.3 — Fillable form, inline native
+### 5.2 — Legal-size, modal
 
-[Fillable form — inline native](https://sample-files.com/downloads/documents/pdf/fillable-form.pdf ':pdf-preview mode=inline backend=native height=80vh')
+[Legal size — modal](https://sample-files.com/downloads/documents/pdf/sample-pdf-legal-size.pdf ':pdf-preview mode=modal modalWidth=70vw modalHeight=90vh')
+
+---
+
+### 5.3 — Fillable form, inline
+
+[Fillable form — inline](https://sample-files.com/downloads/documents/pdf/fillable-form.pdf ':pdf-preview mode=inline height=80vh')

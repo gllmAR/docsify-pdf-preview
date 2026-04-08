@@ -14,6 +14,7 @@
     height: 'auto',          // 'auto' = fit one full page; or any CSS length
     modalWidth: '96vw',
     modalHeight: '97vh',
+    pdfjsCrossOrigin: false, // false = use native/ios fallback for cross-origin PDFs
     routeParam: null,        // e.g. "pdf" – enables URL state
     match: /\.pdf(\?.*)?$/i
   };
@@ -166,6 +167,19 @@
     return false;
   }
 
+  function isCrossOriginUrl(url) {
+    try {
+      return new URL(url, window.location.href).origin !== window.location.origin;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function shouldUsePdfjs(url, cfg) {
+    if (!isCrossOriginUrl(url)) return true;
+    return !!(cfg && cfg.pdfjsCrossOrigin);
+  }
+
   function parsePdfLinkOptions(title) {
     if (!title) return null;
     var marker = title.indexOf(':pdf-preview');
@@ -173,7 +187,7 @@
     var raw = title.slice(marker + ':pdf-preview'.length).trim();
     if (!raw) return {};
     var opts = {};
-    var allowed = { mode: true, height: true, modalWidth: true, modalHeight: true };
+    var allowed = { mode: true, height: true, modalWidth: true, modalHeight: true, pdfjsCrossOrigin: true };
     var re = /(\w+)=(?:"([^"]*)"|'([^']*)'|(\S+))/g;
     var m;
     while ((m = re.exec(raw)) !== null) {
@@ -473,6 +487,11 @@
    * without re-fetching — so expanding inline→modal is instant.
    */
   function renderPdfViewer(container, url, cfg) {
+    if (!shouldUsePdfjs(url, cfg)) {
+      renderIframeFallback(container, url, cfg);
+      return;
+    }
+
     loadPdfjs(function (err) {
       if (err || !window.pdfjsLib) {
         console.warn('[pdf-preview] PDF.js unavailable, falling back to iframe:', err && err.message);
